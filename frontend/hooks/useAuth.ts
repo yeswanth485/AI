@@ -1,0 +1,6 @@
+import { useAuthContext } from "@/context/AuthContext";
+
+export function useAuth() {
+  const { user, token, login, logout, isAuthenticated } = useAuthContext();
+  return { user, token, login, logout, isAuthenticated };
+}
