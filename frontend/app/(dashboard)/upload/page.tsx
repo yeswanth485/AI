@@ -65,8 +65,9 @@ export default function UploadPage() {
       const uploadResult = await uploadOrders(file, user.id, shippingZone);
       setResult(uploadResult);
       setUploadProgress(100);
-    } catch (err: any) {
-      setError(err.message || "Upload failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Upload failed";
+      setError(message);
     } finally {
       setUploading(false);
     }
