@@ -14,6 +14,7 @@ import {
   User,
   Upload,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
