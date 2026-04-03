@@ -5,7 +5,24 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Drop all tables and recreate them to ensure schema matches models
-Base.metadata.drop_all(bind=engine)
+# Using raw SQL to handle CASCADE for dependent objects
+from sqlalchemy import text
+
+try:
+    with engine.connect() as conn:
+        # Get all table names
+        result = conn.execute(
+            text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+        )
+        tables = [row[0] for row in result]
+        # Drop tables in reverse order to avoid foreign key issues
+        for table in reversed(tables):
+            conn.execute(text(f'DROP TABLE IF EXISTS "{table}" CASCADE'))
+        conn.commit()
+except Exception as e:
+    print(f"Warning: Could drop tables with CASCADE: {e}")
+    # Fallback to standard drop_all
+    Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
