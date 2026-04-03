@@ -1,9 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Text } from "@react-three/drei";
-import * as THREE from "three";
+import dynamic from "next/dynamic";
+import { useRef, useState, useEffect } from "react";
 
 interface Box3D {
   name: string;
@@ -29,105 +27,87 @@ interface ThreeDPackViewerProps {
   items: Item3D[];
 }
 
-function BoxWireframe({ box }: { box: Box3D }) {
-  return (
-    <mesh>
-      <boxGeometry args={[box.length_cm, box.height_cm, box.width_cm]} />
-      <meshBasicMaterial
-        color="#3b82f6"
-        wireframe
-        transparent
-        opacity={0.15}
-      />
-    </mesh>
-  );
-}
-
-function PackedItem3D({ item }: { item: Item3D }) {
+function ThreeDPackViewerContent({ box, items }: ThreeDPackViewerProps) {
+  const { Canvas } = require("@react-three/fiber");
+  const { OrbitControls, Text } = require("@react-three/drei");
+  const THREE = require("three");
   const meshRef = useRef<THREE.Mesh>(null);
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState<number | null>(null);
 
-  const color = item.is_fragile ? "#f59e0b" : "#22c55e";
-
-  return (
-    <group
-      position={[
-        item.position_x + item.length_cm / 2,
-        item.position_y + item.height_cm / 2,
-        item.position_z + item.width_cm / 2,
-      ]}
-    >
-      <mesh
-        ref={meshRef}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        <boxGeometry
-          args={[item.length_cm, item.height_cm, item.width_cm]}
-        />
-        <meshStandardMaterial
-          color={color}
-          transparent
-          opacity={hovered ? 0.9 : 0.7}
-        />
-      </mesh>
-      {hovered && (
-        <Text
-          position={[0, item.height_cm / 2 + 2, 0]}
-          fontSize={2}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {item.product_name} (x{item.quantity})
-        </Text>
-      )}
-    </group>
-  );
-}
-
-function Scene({ box, items }: ThreeDPackViewerProps) {
   const maxDim = Math.max(box.length_cm, box.width_cm, box.height_cm);
   const cameraDistance = maxDim * 2.5;
 
   return (
-    <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 10]} intensity={1} />
-      <directionalLight position={[-10, -10, -10]} intensity={0.3} />
-
-      <BoxWireframe box={box} />
-
-      {items.map((item, i) => (
-        <PackedItem3D key={i} item={item} />
-      ))}
-
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={cameraDistance * 0.5}
-        maxDistance={cameraDistance * 3}
-      />
-
-      <gridHelper args={[maxDim * 2, 20, "#333333", "#222222"]} position={[0, -0.1, 0]} />
-    </>
-  );
-}
-
-export default function ThreeDPackViewer({ box, items }: ThreeDPackViewerProps) {
-  const maxDim = Math.max(box.length_cm, box.width_cm, box.height_cm);
-  const cameraDistance = maxDim * 2.5;
-
-  return (
-    <div className="w-full h-[500px] bg-[#111111] rounded-lg overflow-hidden">
+    <div className="w-full h-[500px] bg-[#111111] rounded-lg overflow-hidden relative">
       <Canvas
         camera={{
           position: [cameraDistance, cameraDistance * 0.7, cameraDistance],
           fov: 50,
         }}
       >
-        <Scene box={box} items={items} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 10]} intensity={1} />
+        <directionalLight position={[-10, -10, -10]} intensity={0.3} />
+
+        <mesh>
+          <boxGeometry args={[box.length_cm, box.height_cm, box.width_cm]} />
+          <meshBasicMaterial
+            color="#3b82f6"
+            wireframe
+            transparent
+            opacity={0.15}
+          />
+        </mesh>
+
+        {items.map((item, i) => {
+          const color = item.is_fragile ? "#f59e0b" : "#22c55e";
+          return (
+            <group
+              key={i}
+              position={[
+                item.position_x + item.length_cm / 2,
+                item.position_y + item.height_cm / 2,
+                item.position_z + item.width_cm / 2,
+              ]}
+            >
+              <mesh
+                ref={hovered === i ? meshRef : null}
+                onPointerOver={() => setHovered(i)}
+                onPointerOut={() => setHovered(null)}
+              >
+                <boxGeometry
+                  args={[item.length_cm, item.height_cm, item.width_cm]}
+                />
+                <meshStandardMaterial
+                  color={color}
+                  transparent
+                  opacity={hovered === i ? 0.9 : 0.7}
+                />
+              </mesh>
+              {hovered === i && (
+                <Text
+                  position={[0, item.height_cm / 2 + 2, 0]}
+                  fontSize={2}
+                  color="white"
+                  anchorX="center"
+                  anchorY="middle"
+                >
+                  {item.product_name} (x{item.quantity})
+                </Text>
+              )}
+            </group>
+          );
+        })}
+
+        <OrbitControls
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={true}
+          minDistance={cameraDistance * 0.5}
+          maxDistance={cameraDistance * 3}
+        />
+
+        <gridHelper args={[maxDim * 2, 20, "#333333", "#222222"]} position={[0, -0.1, 0]} />
       </Canvas>
 
       <div className="absolute bottom-4 left-4 flex gap-4 text-sm">
@@ -146,4 +126,22 @@ export default function ThreeDPackViewer({ box, items }: ThreeDPackViewerProps) 
       </div>
     </div>
   );
+}
+
+export default function ThreeDPackViewer(props: ThreeDPackViewerProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="w-full h-[500px] bg-[#111111] rounded-lg flex items-center justify-center">
+        <span className="text-gray-400">Loading 3D viewer...</span>
+      </div>
+    );
+  }
+
+  return <ThreeDPackViewerContent {...props} />;
 }
