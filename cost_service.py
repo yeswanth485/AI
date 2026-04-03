@@ -77,3 +77,7 @@ def calculate_optimized_cost(db: Session, order: Order, box: BoxInventory) -> fl
     chargeable_weight = calculate_chargeable_weight(total_weight, dimensional_weight)
 
     return calculate_shipping_cost(db, str(order.shipping_zone), chargeable_weight)
+
+
+def calculate_profit(savings: float, margin_factor: float = 0.30) -> float:
+    return round(savings * margin_factor, 2)

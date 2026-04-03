@@ -1,7 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    BackgroundTasks,
+    UploadFile,
+    File,
+    Form,
+)
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Order, OrderItem, User, Product, BoxInventory, PackagingPlan
+from models import (
+    Order,
+    OrderItem,
+    User,
+    Product,
+    BoxInventory,
+    PackagingPlan,
+    UploadBatch,
+)
 from schemas import (
     OrderCreate,
     OrderResponse,
@@ -18,12 +34,23 @@ from schemas import (
     SavingsTrendPoint,
     BoxUsagePoint,
     CostComparisonPoint,
+    ProfitTrendPoint,
+    UploadResult,
+    PackInstructionResponse,
 )
 from decision_service import optimize_packaging
+from upload_service import (
+    parse_upload_file,
+    validate_upload_dataframe,
+    ingest_upload_batch,
+)
+from pack_instruction_service import generate_instructions
+from packing_service import items_fit_in_box, PackingResult
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
 import os
+import json
 
 SECRET_KEY = os.getenv("SECRET_KEY", "packai-secret-key-change-in-production")
 ALGORITHM = "HS256"
@@ -189,6 +216,113 @@ def optimize_packaging_endpoint(order_id: int, db: Session = Depends(get_db)):
     return result
 
 
+@router.post("/upload-orders", response_model=UploadResult)
+async def upload_orders(
+    file: UploadFile = File(...),
+    user_id: int = Form(...),
+    shipping_zone: str = Form(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    db: Session = Depends(get_db),
+):
+    if not file.filename or not (
+        file.filename.endswith(".csv") or file.filename.endswith(".xlsx")
+    ):
+        raise HTTPException(
+            status_code=400, detail="Only CSV and Excel files are allowed"
+        )
+
+    file_bytes = await file.read()
+
+    try:
+        df = parse_upload_file(file_bytes, file.filename)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    total_rows = len(df)
+
+    try:
+        valid_df, errors = validate_upload_dataframe(df)
+    except ValueError as e:
+        upload_batch = UploadBatch(
+            filename=file.filename,
+            total_rows=total_rows,
+            valid_rows=0,
+            failed_rows=total_rows,
+            status="failed",
+            error_summary=json.dumps([{"row": 0, "error": str(e)}]),
+        )
+        db.add(upload_batch)
+        db.commit()
+        return UploadResult(
+            upload_id=upload_batch.id,
+            total_rows=total_rows,
+            valid_rows=0,
+            failed_rows=total_rows,
+            order_ids=[],
+            errors=[{"row": 0, "error": str(e)}],
+        )
+
+    upload_batch = UploadBatch(
+        filename=file.filename,
+        total_rows=total_rows,
+        valid_rows=len(valid_df),
+        failed_rows=total_rows - len(valid_df),
+        status="processing",
+        error_summary=json.dumps(errors),
+    )
+    db.add(upload_batch)
+    db.flush()
+
+    try:
+        order_ids = ingest_upload_batch(db, valid_df, user_id, shipping_zone)
+        db.commit()
+
+        for oid in order_ids:
+            background_tasks.add_task(optimize_packaging, db, oid)
+
+        upload_batch.status = "complete"
+        db.commit()
+
+        return UploadResult(
+            upload_id=upload_batch.id,
+            total_rows=total_rows,
+            valid_rows=len(valid_df),
+            failed_rows=total_rows - len(valid_df),
+            order_ids=order_ids,
+            errors=errors,
+        )
+    except Exception as e:
+        upload_batch.status = "failed"
+        upload_batch.error_summary = json.dumps([{"row": 0, "error": str(e)}])
+        db.commit()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/pack-instructions/{order_id}", response_model=PackInstructionResponse)
+def get_pack_instructions(order_id: int, db: Session = Depends(get_db)):
+    plan = db.query(PackagingPlan).filter(PackagingPlan.order_id == order_id).first()
+    if plan is None:
+        raise HTTPException(
+            status_code=404, detail=f"No packaging plan found for order {order_id}"
+        )
+
+    box = db.query(BoxInventory).filter(BoxInventory.id == plan.box_id).first()
+    if box is None:
+        raise HTTPException(status_code=404, detail="Box not found")
+
+    order_items = db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
+    packing_result = items_fit_in_box(db, order_items, box)
+
+    instructions_data = generate_instructions(packing_result, box.name)
+
+    return PackInstructionResponse(
+        order_id=order_id,
+        box_name=box.name,
+        instructions=instructions_data["instructions"],
+        item_order=instructions_data["item_order"],
+    )
+
+
 @router.get("/inventory", response_model=list[BoxInventoryResponse])
 def list_inventory(db: Session = Depends(get_db)):
     boxes = db.query(BoxInventory).all()
@@ -237,8 +371,10 @@ def get_analytics(db: Session = Depends(get_db)):
         if total_orders > 0
         else 0.0
     )
+    total_profit = sum(getattr(p, "profit", 0.0) for p in plans)
 
     savings_trend = []
+    profit_trend = []
     box_usage_map = {}
     cost_comparison = []
 
@@ -249,6 +385,9 @@ def get_analytics(db: Session = Depends(get_db)):
                 order.created_at.strftime("%Y-%m-%d") if order.created_at else "unknown"
             )
             savings_trend.append(SavingsTrendPoint(date=date_str, savings=plan.savings))
+            profit_trend.append(
+                ProfitTrendPoint(date=date_str, profit=getattr(plan, "profit", 0.0))
+            )
             cost_comparison.append(
                 CostComparisonPoint(
                     order_id=plan.order_id,
@@ -271,6 +410,8 @@ def get_analytics(db: Session = Depends(get_db)):
         total_savings=round(total_savings, 2),
         avg_savings_per_order=round(avg_savings, 2),
         avg_efficiency=round(avg_efficiency, 2),
+        total_profit=round(total_profit, 2),
+        profit_trend=profit_trend,
         savings_trend=savings_trend,
         box_usage=box_usage,
         cost_comparison=cost_comparison,

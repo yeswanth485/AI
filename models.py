@@ -80,6 +80,8 @@ class PackagingPlan(Base):
     savings = Column(Float, nullable=False)
     efficiency_score = Column(Float, nullable=False)
     decision_explanation = Column(String, nullable=False)
+    profit = Column(Float, nullable=False, default=0.0)
+    packing_instructions = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 
@@ -108,4 +110,17 @@ class CostLog(Base):
     rate_per_kg = Column(Float, nullable=False)
     computed_cost = Column(Float, nullable=False)
     cost_type = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class UploadBatch(Base):
+    __tablename__ = "upload_batches"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    filename = Column(String, nullable=False)
+    total_rows = Column(Integer, nullable=False)
+    valid_rows = Column(Integer, nullable=False)
+    failed_rows = Column(Integer, nullable=False)
+    status = Column(String, nullable=False)
+    error_summary = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())

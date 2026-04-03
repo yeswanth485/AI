@@ -12,11 +12,12 @@ import {
   Settings,
   LogOut,
   User,
+  Upload,
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/upload", label: "Upload", icon: Upload },
   { href: "/orders", label: "Orders", icon: Package },
   { href: "/inventory", label: "Inventory", icon: Warehouse },
   { href: "/optimization", label: "Optimization", icon: Zap },

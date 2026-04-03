@@ -96,6 +96,10 @@ class OptimizationResponse(BaseModel):
     savings: float
     efficiency_score: float
     decision_explanation: str
+    profit: float = 0.0
+    packing_instructions: Optional[str] = None
+    item_order: Optional[List[dict]] = None
+    packed_items: Optional[List[dict]] = None
 
 
 class BoxInventoryCreate(BaseModel):
@@ -142,11 +146,18 @@ class CostComparisonPoint(BaseModel):
     optimized: float
 
 
+class ProfitTrendPoint(BaseModel):
+    date: str
+    profit: float
+
+
 class AnalyticsSummary(BaseModel):
     total_orders: int
     total_savings: float
     avg_savings_per_order: float
     avg_efficiency: float
+    total_profit: float = 0.0
+    profit_trend: List[ProfitTrendPoint] = []
     savings_trend: List[SavingsTrendPoint]
     box_usage: List[BoxUsagePoint]
     cost_comparison: List[CostComparisonPoint]
@@ -155,3 +166,19 @@ class AnalyticsSummary(BaseModel):
 class ValidationResponse(BaseModel):
     valid: bool
     reason: str
+
+
+class UploadResult(BaseModel):
+    upload_id: int
+    total_rows: int
+    valid_rows: int
+    failed_rows: int
+    order_ids: List[int]
+    errors: List[dict]
+
+
+class PackInstructionResponse(BaseModel):
+    order_id: int
+    box_name: str
+    instructions: str
+    item_order: List[dict]

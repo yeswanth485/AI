@@ -13,8 +13,10 @@ from cost_service import (
     calculate_dimensional_weight,
     calculate_chargeable_weight,
     get_shipping_rate,
+    calculate_profit,
 )
-from packing_service import items_fit_in_box, sort_items_by_volume
+from packing_service import items_fit_in_box, sort_items_ffd, PackingResult
+from pack_instruction_service import generate_instructions
 from validation_service import validate_result
 
 
@@ -49,6 +51,8 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
                     "optimized_cost": optimized_cost,
                     "efficiency_score": packing_result.efficiency_score,
                     "packed_items": packing_result.packed_items,
+                    "has_fragile": packing_result.has_fragile,
+                    "total_layers": packing_result.total_layers,
                 }
             )
 
@@ -89,6 +93,8 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
             "optimized_cost": optimized_cost,
             "efficiency_score": efficiency,
             "packed_items": packing_result.packed_items,
+            "has_fragile": packing_result.has_fragile,
+            "total_layers": packing_result.total_layers,
         }
         is_fallback = True
         savings = max(0.0, baseline_cost - optimized_cost)
@@ -170,6 +176,12 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
             f"Saved Rs.{savings:.2f} vs baseline."
         )
 
+    profit = calculate_profit(savings)
+
+    # Re-compute packing result for the winning box to get proper PackingResult
+    winning_packing_result = items_fit_in_box(db, order_items, box)
+    instructions_data = generate_instructions(winning_packing_result, box.name)
+
     plan = PackagingPlan(
         order_id=order.id,
         box_id=box.id,
@@ -178,6 +190,8 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
         savings=savings,
         efficiency_score=winner["efficiency_score"],
         decision_explanation=decision_explanation,
+        profit=profit,
+        packing_instructions=instructions_data["instructions"],
     )
     db.add(plan)
     db.flush()
@@ -204,4 +218,20 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
         "savings": round(savings, 2),
         "efficiency_score": round(winner["efficiency_score"], 2),
         "decision_explanation": decision_explanation,
+        "profit": round(profit, 2),
+        "packing_instructions": instructions_data["instructions"],
+        "item_order": instructions_data["item_order"],
+        "packed_items": [
+            {
+                "product_id": pi.product_id,
+                "product_name": pi.product_name,
+                "quantity": pi.quantity,
+                "is_fragile": pi.is_fragile,
+                "position_x": pi.position_x,
+                "position_y": pi.position_y,
+                "position_z": pi.position_z,
+                "layer": pi.layer,
+            }
+            for pi in winner["packed_items"]
+        ],
     }
