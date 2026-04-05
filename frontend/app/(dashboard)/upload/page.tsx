@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { uploadOrders } from "@/services/upload.service";
-import { UploadResult } from "@/types";
-import { Upload, AlertCircle, CheckCircle, XCircle, FileText, RefreshCw, Zap } from "lucide-react";
+import { getOrderOptimizationStatus } from "@/services/orders.service";
+import { UploadResult, OptimizationResult } from "@/types";
+import { Upload, AlertCircle, CheckCircle, XCircle, FileText, RefreshCw, Zap, Loader2 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
+import OptimizationResultCard from "@/components/optimization/OptimizationResult";
 import { useAppContext } from "@/context/AppContext";
 
 const platforms = [
@@ -44,6 +47,9 @@ export default function UploadPage() {
   const [dragOver, setDragOver] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [step, setStep] = useState(1);
+  const [optimizingOrderIds, setOptimizingOrderIds] = useState<number[]>([]);
+  const [optimizationResults, setOptimizationResults] = useState<Map<number, OptimizationResult>>(new Map());
+  const [allOptimized, setAllOptimized] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -100,7 +106,93 @@ export default function UploadPage() {
     setResult(null);
     setError(null);
     setStep(1);
+    setOptimizingOrderIds([]);
+    setOptimizationResults(new Map());
+    setAllOptimized(false);
   };
+
+  // Poll for optimization status of uploaded orders
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resultsRef = useRef<Map<number, OptimizationResult>>(new Map());
+  const orderIdsRef = useRef<number[]>([]);
+  const allOptimizedRef = useRef(false);
+
+  const pollOptimizationStatus = useCallback(async () => {
+    const pending = orderIdsRef.current.filter(
+      (id) => !resultsRef.current.has(id)
+    );
+    if (pending.length === 0) {
+      allOptimizedRef.current = true;
+      setAllOptimized(true);
+      return;
+    }
+
+    const results = new Map(resultsRef.current);
+    let anyCompleted = false;
+
+    for (const orderId of pending) {
+      try {
+        const statusData = await getOrderOptimizationStatus(orderId);
+        if (statusData.status === "optimized" && statusData.optimized_cost !== undefined) {
+          results.set(orderId, statusData as OptimizationResult);
+          anyCompleted = true;
+        } else if (statusData.status === "failed" || statusData.status === "no_savings") {
+          results.set(orderId, {
+            order_id: orderId,
+            recommended_box: statusData.recommended_box || "N/A",
+            baseline_cost: statusData.baseline_cost || 0,
+            optimized_cost: statusData.optimized_cost || statusData.baseline_cost || 0,
+            savings: statusData.savings || 0,
+            efficiency_score: statusData.efficiency_score || 0,
+            decision_explanation: statusData.decision_explanation || `Order ${statusData.status}`,
+            profit: statusData.profit || 0,
+            packing_instructions: "",
+            item_order: [],
+            packed_items: [],
+          } as OptimizationResult);
+          anyCompleted = true;
+        }
+      } catch {
+        // Still optimizing, will retry
+      }
+    }
+
+    if (anyCompleted) {
+      resultsRef.current = results;
+      setOptimizationResults(new Map(results));
+    }
+
+    if (orderIdsRef.current.every((id) => results.has(id))) {
+      allOptimizedRef.current = true;
+      setAllOptimized(true);
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!result || result.order_ids.length === 0 || allOptimizedRef.current) return;
+
+    const newlyCreated = result.order_ids.filter(
+      (id) => !orderIdsRef.current.includes(id) && !resultsRef.current.has(id)
+    );
+    if (newlyCreated.length > 0) {
+      orderIdsRef.current = [...orderIdsRef.current, ...newlyCreated];
+    }
+
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+
+    pollingRef.current = setInterval(pollOptimizationStatus, 2000);
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, [result, pollOptimizationStatus]);
 
   const steps = [
     { n: 1, label: "Upload CSV / Excel" },
@@ -348,15 +440,86 @@ export default function UploadPage() {
           )}
 
           {result.order_ids.length > 0 && (
-            <div className="flex gap-2">
-              <Button onClick={() => router.push("/orders")} className="flex-1">
-                <CheckCircle className="w-4 h-4" />
-                View Orders ({result.order_ids.length} created)
-              </Button>
-              <Button onClick={() => router.push("/optimization")} variant="outline">
-                <Zap className="w-4 h-4" />
-                Optimize
-              </Button>
+            <div className="space-y-3">
+              {/* Optimization progress */}
+              <div className="flex items-center justify-between">
+                <div className="text-[12px] font-semibold text-foreground">
+                  Optimization Status
+                </div>
+                <div className="flex items-center gap-2">
+                  {optimizingOrderIds.length > 0 && !allOptimized && (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 text-accent animate-spin" />
+                      <span className="text-[11px] text-accent">
+                        {optimizationResults.size}/{optimizingOrderIds.length} completed
+                      </span>
+                    </>
+                  )}
+                  {allOptimized && (
+                    <Badge variant="success">All optimized</Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              {optimizingOrderIds.length > 0 && (
+                <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-accent h-full rounded-full transition-all duration-500"
+                    style={{ width: `${(optimizationResults.size / optimizingOrderIds.length) * 100}%` }}
+                  />
+                </div>
+              )}
+
+              {/* Individual order results */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {result.order_ids.map((orderId) => {
+                  const optResult = optimizationResults.get(orderId);
+                  const isOptimizing = optimizingOrderIds.includes(orderId) && !optResult;
+
+                  return (
+                    <div key={orderId} className="border border-border rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-mono text-[12px] text-accent">Order #{orderId}</span>
+                        {isOptimizing && (
+                          <div className="flex items-center gap-1.5">
+                            <Loader2 className="h-3 w-3 text-accent animate-spin" />
+                            <Badge variant="warning">optimizing...</Badge>
+                          </div>
+                        )}
+                        {optResult && optResult.savings > 0 && (
+                          <Badge variant="success">optimized</Badge>
+                        )}
+                        {optResult && optResult.savings === 0 && (
+                          <Badge variant="warning">no savings</Badge>
+                        )}
+                      </div>
+
+                      {optResult && optResult.savings > 0 && (
+                        <div className="mt-2">
+                          <OptimizationResultCard result={optResult} />
+                        </div>
+                      )}
+                      {optResult && optResult.savings === 0 && (
+                        <div className="text-[11px] text-muted-dark mt-1">
+                          {optResult.decision_explanation || "No cost savings possible with available boxes"}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={() => router.push("/orders")} className="flex-1">
+                  <CheckCircle className="w-4 h-4" />
+                  View All Orders
+                </Button>
+                <Button onClick={() => router.push("/analytics")} variant="outline" className="flex-1">
+                  <Zap className="w-4 h-4" />
+                  View Analytics
+                </Button>
+              </div>
             </div>
           )}
         </Card>

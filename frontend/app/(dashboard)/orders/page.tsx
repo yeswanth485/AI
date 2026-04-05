@@ -14,7 +14,7 @@ import { Plus, RefreshCw } from "lucide-react";
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { orders, loading, error, refetch, createOrder } = useOrders();
+  const { orders, loading, error, refetch, createOrder } = useOrders({ polling: true, pollingInterval: 5000 });
   const { addToast } = useAppContext();
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<string>("all");

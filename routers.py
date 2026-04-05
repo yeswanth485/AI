@@ -16,6 +16,7 @@ from models import (
     Product,
     BoxInventory,
     PackagingPlan,
+    PackagingPlanItem,
     UploadBatch,
 )
 from schemas import (
@@ -46,6 +47,7 @@ from upload_service import (
 )
 from pack_instruction_service import generate_instructions
 from packing_service import items_fit_in_box, PackingResult
+from database import SessionLocal
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
@@ -56,6 +58,24 @@ import bcrypt
 SECRET_KEY = os.getenv("SECRET_KEY", "packai-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 10080
+
+
+def run_background_optimization(order_id: int):
+    """Run optimization in background with its own DB session."""
+    db = SessionLocal()
+    try:
+        optimize_packaging(db, order_id)
+    except Exception as e:
+        print(f"Background optimization failed for order {order_id}: {e}")
+        try:
+            order = db.query(Order).filter(Order.id == order_id).first()
+            if order:
+                setattr(order, "status", "failed")
+                db.commit()
+        except Exception:
+            pass
+    finally:
+        db.close()
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -155,7 +175,7 @@ def create_order(
     db.commit()
     db.refresh(order)
 
-    background_tasks.add_task(optimize_packaging, db, int(order.id))
+    background_tasks.add_task(run_background_optimization, int(order.id))
 
     return {"order_id": order.id, "status": "pending"}
 
@@ -205,6 +225,58 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
         )
     order_response.items = order_items
     return order_response
+
+
+@router.get("/orders/{order_id}/optimization-status")
+def get_order_optimization_status(order_id: int, db: Session = Depends(get_db)):
+    """Get the current optimization status and result for an order."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if order is None:
+        raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
+
+    plan = db.query(PackagingPlan).filter(PackagingPlan.order_id == order_id).first()
+
+    result = {
+        "order_id": order.id,
+        "status": order.status,
+        "updated_at": order.updated_at.isoformat() if order.updated_at else None,
+    }
+
+    if plan:
+        box = db.query(BoxInventory).filter(BoxInventory.id == plan.box_id).first()
+        plan_items = db.query(PackagingPlanItem).filter(PackagingPlanItem.plan_id == plan.id).all()
+
+        packed_items_data = []
+        for pi in plan_items:
+            product = db.query(Product).filter(Product.id == pi.product_id).first()
+            packed_items_data.append({
+                "product_id": pi.product_id,
+                "product_name": product.name if product else None,
+                "quantity": pi.quantity_packed,
+                "is_fragile": product.is_fragile if product else False,
+                "position_x": pi.position_x,
+                "position_y": pi.position_y,
+                "position_z": pi.position_z,
+                "layer": pi.position_z,
+                "length_cm": product.length_cm if product else 0,
+                "width_cm": product.width_cm if product else 0,
+                "height_cm": product.height_cm if product else 0,
+            })
+
+        result.update({
+            "recommended_box": box.name if box else None,
+            "baseline_cost": round(float(plan.baseline_cost), 2),
+            "optimized_cost": round(float(plan.optimized_cost), 2),
+            "savings": round(float(plan.savings), 2),
+            "efficiency_score": round(float(plan.efficiency_score), 2),
+            "decision_explanation": plan.decision_explanation,
+            "profit": round(float(getattr(plan, "profit", 0.0)), 2),
+            "packing_instructions": plan.packing_instructions,
+            "item_order": plan.item_order if hasattr(plan, "item_order") else [],
+            "packed_items": packed_items_data,
+        })
+
+    return result
 
 
 @router.post("/optimize-packaging/{order_id}", response_model=OptimizationResponse)
@@ -283,7 +355,7 @@ async def upload_orders(
         db.commit()
 
         for oid in order_ids:
-            background_tasks.add_task(optimize_packaging, db, oid)
+            background_tasks.add_task(run_background_optimization, oid)
 
         upload_batch.status = "complete"
         db.commit()

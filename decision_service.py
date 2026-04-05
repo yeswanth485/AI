@@ -231,6 +231,9 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
                 "position_y": pi.position_y,
                 "position_z": pi.position_z,
                 "layer": pi.layer,
+                "length_cm": pi.length_cm,
+                "width_cm": pi.width_cm,
+                "height_cm": pi.height_cm,
             }
             for pi in winner["packed_items"]
         ],

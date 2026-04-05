@@ -1,5 +1,5 @@
 import api from "./api";
-import type { Order } from "@/types";
+import type { Order, OptimizationResult } from "@/types";
 
 interface OrderCreatePayload {
   user_id: number;
@@ -19,5 +19,10 @@ export async function getOrder(id: number): Promise<Order> {
 
 export async function createOrder(payload: OrderCreatePayload): Promise<{ order_id: number; status: string }> {
   const { data } = await api.post<{ order_id: number; status: string }>("/orders", payload);
+  return data;
+}
+
+export async function getOrderOptimizationStatus(id: number): Promise<OptimizationResult & { status: string; updated_at: string | null }> {
+  const { data } = await api.get(`/orders/${id}/optimization-status`);
   return data;
 }

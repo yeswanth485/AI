@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getOrders, createOrder } from "@/services/orders.service";
 import type { Order } from "@/types";
 
-export function useOrders() {
+export function useOrders({ polling = false, pollingInterval = 3000 } = {}) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -34,6 +35,17 @@ export function useOrders() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  useEffect(() => {
+    if (polling) {
+      pollingRef.current = setInterval(fetchOrders, pollingInterval);
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+        }
+      };
+    }
+  }, [polling, pollingInterval, fetchOrders]);
 
   return { orders, loading, error, refetch: fetchOrders, createOrder: handleCreateOrder };
 }
