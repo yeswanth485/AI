@@ -38,7 +38,6 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [show3D, setShow3D] = useState(false);
-  const [showDimensions, setShowDimensions] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -247,17 +246,6 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setShowDimensions(!showDimensions)}
-                        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all ${
-                          showDimensions
-                            ? "bg-lime/10 text-lime border border-lime/20"
-                            : "bg-surface2 text-muted border border-border hover:border-border2"
-                        }`}
-                      >
-                        <Ruler className="h-3 w-3" />
-                        {showDimensions ? "Hide Dims" : "Show Dims"}
-                      </button>
-                      <button
                         onClick={() => setShow3D(!show3D)}
                         className="flex items-center gap-1.5 rounded-full bg-accent/10 text-accent px-3 py-1.5 text-[11px] font-semibold hover:bg-accent/20 transition-all"
                       >
@@ -286,7 +274,6 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
                         is_fragile: item.is_fragile,
                         quantity: item.quantity,
                       }))}
-                      showDimensions={showDimensions}
                     />
                   )}
 
