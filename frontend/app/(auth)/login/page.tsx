@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Package } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { login } from "@/services/auth.service";
@@ -36,23 +35,46 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent">
-            <Package className="h-6 w-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted">Sign in to your PackAI account</p>
+    <div className="min-h-screen grid grid-cols-2">
+      <div className="bg-surface p-12 flex flex-col justify-between border-r border-border relative overflow-hidden">
+        <div className="absolute w-[400px] h-[400px] rounded-full bg-[radial-gradient(rgba(200,255,0,.07),transparent)] bottom-[-150px] left-[-100px] pointer-events-none" />
+        <div>
+          <span className="font-display text-[20px] font-black tracking-tight">
+            Pack<span className="text-accent not-italic">AI</span>
+          </span>
         </div>
+        <div>
+          <h2 className="font-display text-2xl font-black text-foreground mb-2 tracking-tight">
+            Smart Packaging<br /><span className="text-accent">Optimization</span>
+          </h2>
+          <p className="text-sm text-muted leading-relaxed">
+            Reduce shipping costs with AI-driven box selection and packaging optimization.
+          </p>
+        </div>
+        <div className="flex gap-8">
+          <div>
+            <div className="font-display text-2xl font-black text-accent">₹2.4Cr</div>
+            <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Saved</div>
+          </div>
+          <div>
+            <div className="font-display text-2xl font-black text-accent">87%</div>
+            <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Efficiency</div>
+          </div>
+        </div>
+      </div>
 
-        <div className="rounded-xl border border-border bg-surface p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-lg bg-accent-red/10 px-3 py-2 text-sm text-accent-red border border-accent-red/20">
-                {error}
-              </div>
-            )}
+      <div className="flex items-center justify-center p-12">
+        <div className="w-full max-w-[360px]">
+          <h2 className="font-display text-[28px] font-black tracking-tight mb-1">Welcome back</h2>
+          <p className="text-[13px] text-muted mb-6">Sign in to your PackAI account</p>
+
+          {error && (
+            <div className="bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-xl text-[13px] mb-4">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <Input
               id="login-email"
               label="Email"
@@ -71,18 +93,18 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
             />
-            <Button type="submit" loading={loading} className="w-full">
-              Sign In
+            <Button type="submit" loading={loading} className="w-full mt-2">
+              Sign In →
             </Button>
           </form>
-        </div>
 
-        <p className="mt-6 text-center text-sm text-muted">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-accent hover:underline">
-            Create one
-          </Link>
-        </p>
+          <p className="mt-4 text-center text-[13px] text-muted">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-accent font-semibold hover:underline">
+              Create one
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

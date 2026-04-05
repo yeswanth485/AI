@@ -1,35 +1,34 @@
 "use client";
 
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { formatCurrency } from "@/lib/utils";
 
-interface SavingsTrendChartProps {
-  data: { date: string; savings: number }[];
+interface DailyOrderVolumeChartProps {
+  data: { date: string; count: number }[];
 }
 
-export default function SavingsTrendChart({ data }: SavingsTrendChartProps) {
+export default function DailyOrderVolumeChart({ data }: DailyOrderVolumeChartProps) {
   if (data.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted">
-        No savings trend data available
+        No daily order volume data available
       </div>
     );
   }
 
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <LineChart data={data}>
+      <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.05)" />
         <XAxis dataKey="date" stroke="#44445a" fontSize={11} />
-        <YAxis stroke="#44445a" fontSize={11} tickFormatter={(v) => `₹${v}`} />
+        <YAxis stroke="#44445a" fontSize={11} />
         <Tooltip
           contentStyle={{
             backgroundColor: "#1a1a24",
@@ -38,17 +37,10 @@ export default function SavingsTrendChart({ data }: SavingsTrendChartProps) {
             color: "#f2f2f8",
             fontSize: "12px",
           }}
-          formatter={(value: unknown) => [formatCurrency(Number(value)), "Savings"]}
+          formatter={(value: unknown) => [`${value} orders`, "Volume"]}
         />
-        <Line
-          type="monotone"
-          dataKey="savings"
-          stroke="#c8ff00"
-          strokeWidth={2}
-          dot={{ fill: "#c8ff00", r: 3 }}
-          activeDot={{ r: 5 }}
-        />
-      </LineChart>
+        <Bar dataKey="count" fill="#c8ff00" radius={[4, 4, 0, 0]} />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

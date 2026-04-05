@@ -14,6 +14,9 @@ class PackedItem:
     position_y: float
     position_z: float
     layer: str
+    length_cm: float = 0.0
+    width_cm: float = 0.0
+    height_cm: float = 0.0
 
 
 @dataclass
@@ -83,6 +86,9 @@ def assign_spatial_positions(
             position_y=cursor_y,
             position_z=0.0,
             layer=layer,
+            length_cm=product.length_cm,
+            width_cm=product.width_cm,
+            height_cm=product.height_cm,
         )
         packed_items.append(packed_item)
         cursor_y += item_height * item.quantity

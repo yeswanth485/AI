@@ -12,15 +12,15 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
 
-interface CostComparisonChartProps {
-  data: { order_id: number; baseline: number; optimized: number }[];
+interface CostBreakdownChartProps {
+  data: { order_id: number; shipping: number; box_cost: number }[];
 }
 
-export default function CostComparisonChart({ data }: CostComparisonChartProps) {
+export default function CostBreakdownChart({ data }: CostBreakdownChartProps) {
   if (data.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted">
-        No cost comparison data available
+        No cost breakdown data available
       </div>
     );
   }
@@ -41,18 +41,18 @@ export default function CostComparisonChart({ data }: CostComparisonChartProps) 
           }}
           formatter={(value: unknown, name: unknown) => [
             formatCurrency(Number(value)),
-            name === "baseline" ? "Baseline" : "Optimized",
+            name === "shipping" ? "Shipping Cost" : "Box Material",
           ]}
         />
         <Legend
           formatter={(value: string) => (
             <span className="text-[11px] text-muted">
-              {value === "baseline" ? "Baseline Cost" : "Optimized Cost"}
+              {value === "shipping" ? "Shipping" : "Box Material"}
             </span>
           )}
         />
-        <Bar dataKey="baseline" fill="#44445a" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="optimized" fill="#c8ff00" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="shipping" fill="#00d4b8" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="box_cost" fill="#c8ff00" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

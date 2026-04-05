@@ -11,30 +11,30 @@ interface InventoryTableProps {
 export default function InventoryTable({ inventory, onUpdateQuantity }: InventoryTableProps) {
   if (inventory.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-8 text-center">
+      <div className="rounded-2xl border border-border bg-surface p-8 text-center">
         <p className="text-sm text-muted">No inventory items found</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+    <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-border">
-            <th className="px-4 py-3 font-medium text-muted">Box Name</th>
-            <th className="px-4 py-3 font-medium text-muted">Dimensions</th>
-            <th className="px-4 py-3 font-medium text-muted">Max Weight</th>
-            <th className="px-4 py-3 font-medium text-muted">Fragile</th>
-            <th className="px-4 py-3 font-medium text-muted">Available</th>
-            <th className="px-4 py-3 font-medium text-muted">Actions</th>
+            <th className="px-4 py-3 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Box Name</th>
+            <th className="px-4 py-3 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Dimensions</th>
+            <th className="px-4 py-3 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Max Weight</th>
+            <th className="px-4 py-3 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Fragile</th>
+            <th className="px-4 py-3 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Available</th>
+            <th className="px-4 py-3 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody>
           {inventory.map((box) => (
-            <tr key={box.id} className="border-b border-border/50 hover:bg-background/50 transition-all">
-              <td className="px-4 py-3 font-medium text-foreground">{box.name}</td>
-              <td className="px-4 py-3 text-muted font-mono text-xs">
+            <tr key={box.id} className="border-b border-border/50 hover:bg-white/[.015] transition-colors">
+              <td className="px-4 py-3 font-semibold text-foreground">{box.name}</td>
+              <td className="px-4 py-3 text-muted font-mono text-[12px]">
                 {formatDimensions(box.length_cm, box.width_cm, box.height_cm)}
               </td>
               <td className="px-4 py-3 text-muted">{formatWeight(box.max_weight_kg)}</td>
@@ -47,10 +47,10 @@ export default function InventoryTable({ inventory, onUpdateQuantity }: Inventor
                 <span
                   className={
                     box.quantity_available > 10
-                      ? "text-accent-green"
+                      ? "text-accent-green font-semibold"
                       : box.quantity_available > 0
-                      ? "text-yellow-400"
-                      : "text-accent-red"
+                      ? "text-accent font-semibold"
+                      : "text-accent-red font-semibold"
                   }
                 >
                   {box.quantity_available}
@@ -65,7 +65,7 @@ export default function InventoryTable({ inventory, onUpdateQuantity }: Inventor
                         onUpdateQuantity(box.id, Number(newQty));
                       }
                     }}
-                    className="text-xs text-accent hover:underline"
+                    className="text-[12px] text-accent hover:underline font-semibold"
                   >
                     Edit Qty
                   </button>

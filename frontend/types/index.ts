@@ -69,6 +69,9 @@ export interface OptimizationResult {
     position_y: number;
     position_z: number;
     layer: string;
+    length_cm?: number;
+    width_cm?: number;
+    height_cm?: number;
   }[];
 }
 

@@ -20,17 +20,10 @@ export default function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormP
   const [items, setItems] = useState([{ product_id: "", quantity: "" }]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const addItem = () => {
-    setItems((prev) => [...prev, { product_id: "", quantity: "" }]);
-  };
-
-  const removeItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateItem = (index: number, field: string, value: string) => {
+  const addItem = () => setItems((prev) => [...prev, { product_id: "", quantity: "" }]);
+  const removeItem = (index: number) => setItems((prev) => prev.filter((_, i) => i !== index));
+  const updateItem = (index: number, field: string, value: string) =>
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
-  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -63,32 +56,18 @@ export default function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormP
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        id="order-user-id"
-        label="User ID"
-        type="number"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        error={errors.userId}
-      />
-      <Input
-        id="order-zone"
-        label="Shipping Zone"
-        value={zone}
-        onChange={(e) => setZone(e.target.value)}
-        error={errors.zone}
-        placeholder="e.g., Zone A"
-      />
-      <div className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      <Input id="order-user-id" label="User ID" type="number" value={userId} onChange={(e) => setUserId(e.target.value)} error={errors.userId} />
+      <Input id="order-zone" label="Shipping Zone" value={zone} onChange={(e) => setZone(e.target.value)} error={errors.zone} placeholder="e.g., Zone A" />
+      <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-muted">Order Items</label>
-          <button type="button" onClick={addItem} className="text-xs text-accent hover:underline">
+          <label className="text-[11px] font-bold text-muted uppercase tracking-wider">Order Items</label>
+          <button type="button" onClick={addItem} className="text-[12px] text-accent hover:underline font-semibold">
             + Add Item
           </button>
         </div>
         {items.map((item, index) => (
-          <div key={index} className="flex gap-3 items-end">
+          <div key={index} className="flex gap-2.5 items-end">
             <div className="flex-1">
               <Input
                 id={`item-product-${index}`}
@@ -99,7 +78,7 @@ export default function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormP
                 error={errors[`item_${index}_product`]}
               />
             </div>
-            <div className="w-24">
+            <div className="w-20">
               <Input
                 id={`item-qty-${index}`}
                 label="Qty"
@@ -110,24 +89,16 @@ export default function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormP
               />
             </div>
             {items.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeItem(index)}
-                className="mb-2 text-xs text-accent-red hover:underline"
-              >
-                Remove
+              <button type="button" onClick={() => removeItem(index)} className="mb-2 text-[12px] text-accent-red hover:underline font-semibold">
+                ×
               </button>
             )}
           </div>
         ))}
       </div>
-      <div className="flex justify-end gap-3 pt-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" loading={loading}>
-          Create Order
-        </Button>
+      <div className="flex justify-end gap-2.5 pt-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" loading={loading}>Create Order →</Button>
       </div>
     </form>
   );

@@ -10,13 +10,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import Modal from "@/components/ui/Modal";
 import CreateOrderForm from "@/components/forms/CreateOrderForm";
 import { useAppContext } from "@/context/AppContext";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 
 export default function OrdersPage() {
   const router = useRouter();
   const { orders, loading, error, refetch, createOrder } = useOrders();
   const { addToast } = useAppContext();
   const [showModal, setShowModal] = useState(false);
+  const [filter, setFilter] = useState<string>("all");
 
   const handleOptimize = (id: number) => {
     router.push(`/optimization?order=${id}`);
@@ -35,6 +36,18 @@ export default function OrdersPage() {
     } catch {
       addToast("Failed to create order", "error");
     }
+  };
+
+  const filteredOrders = filter === "all"
+    ? orders
+    : orders.filter((o) => o.status === filter);
+
+  const statusCounts = {
+    all: orders.length,
+    pending: orders.filter((o) => o.status === "pending").length,
+    optimized: orders.filter((o) => o.status === "optimized").length,
+    processing: orders.filter((o) => o.status === "no_savings").length,
+    failed: orders.filter((o) => o.status === "failed").length,
   };
 
   if (loading) {
@@ -60,31 +73,66 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Orders</h2>
-          <p className="text-sm text-muted">{orders.length} total orders</p>
+          <h2 className="font-display text-lg font-black text-foreground tracking-tight">Orders</h2>
+          <p className="text-[12px] text-muted-dark mt-0.5">{orders.length} total orders</p>
         </div>
-        <Button onClick={() => setShowModal(true)}>
-          <Plus className="h-4 w-4" />
-          New Order
-        </Button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={refetch}
+            className="flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-[12px] font-semibold text-muted hover:text-foreground hover:border-border2 transition-all"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Refresh
+          </button>
+          <Button onClick={() => setShowModal(true)}>
+            <Plus className="h-3.5 w-3.5" />
+            New Order
+          </Button>
+        </div>
       </div>
 
-      {orders.length === 0 ? (
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {["all", "pending", "optimized", "processing", "failed"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilter(s)}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold transition-all whitespace-nowrap ${
+              filter === s
+                ? "bg-accent/10 text-accent border border-accent/20"
+                : "bg-surface border border-border text-muted hover:border-border2"
+            }`}
+          >
+            {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+            <span className={`text-[10px] ${filter === s ? "text-accent/60" : "text-muted-dark"}`}>
+              {statusCounts[s as keyof typeof statusCounts]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {filteredOrders.length === 0 ? (
         <EmptyState
-          title="No orders yet"
-          description="Create your first order to get started"
+          title={filter === "all" ? "No orders yet" : `No ${filter} orders`}
+          description={filter === "all" ? "Create your first order to get started" : `No orders with ${filter} status`}
           action={
-            <Button onClick={() => setShowModal(true)}>
-              <Plus className="h-4 w-4" />
-              Create Order
-            </Button>
+            filter === "all" ? (
+              <Button onClick={() => setShowModal(true)}>
+                <Plus className="h-3.5 w-3.5" />
+                Create Order
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => setFilter("all")}>
+                View all orders
+              </Button>
+            )
           }
         />
       ) : (
-        <OrdersTable orders={orders} onOptimize={handleOptimize} />
+        <OrdersTable orders={filteredOrders} onOptimize={handleOptimize} />
       )}
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Create Order">

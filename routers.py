@@ -51,12 +51,17 @@ from datetime import datetime, timedelta
 import jwt
 import os
 import json
+import bcrypt
 
 SECRET_KEY = os.getenv("SECRET_KEY", "packai-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 10080
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 router = APIRouter()
 
@@ -92,7 +97,7 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
     user = User(
         name=payload.name,
         email=payload.email,
-        hashed_password=pwd_context.hash(payload.password),
+        hashed_password=hash_password(payload.password),
     )
     db.add(user)
     db.commit()
@@ -103,7 +108,7 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
 @router.post("/auth/login", response_model=AuthResponse)
 def login(payload: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
-    if not user or not pwd_context.verify(payload.password, user.hashed_password):
+    if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token(data={"sub": str(user.id)})
     return AuthResponse(

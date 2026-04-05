@@ -6,7 +6,7 @@ interface BoxUsageChartProps {
   data: { box_name: string; count: number }[];
 }
 
-const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16"];
+const COLORS = ["#c8ff00", "#00d4b8", "#9b7afe", "#ff7043", "#4da6ff", "#ff4444", "#84cc16", "#f59e0b"];
 
 export default function BoxUsageChart({ data }: BoxUsageChartProps) {
   if (data.length === 0) {
@@ -24,8 +24,8 @@ export default function BoxUsageChart({ data }: BoxUsageChartProps) {
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={100}
+          innerRadius={55}
+          outerRadius={95}
           paddingAngle={2}
           dataKey="count"
           nameKey="box_name"
@@ -36,14 +36,15 @@ export default function BoxUsageChart({ data }: BoxUsageChartProps) {
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: "#111111",
-            border: "1px solid #1f1f1f",
-            borderRadius: "8px",
-            color: "#ededed",
+            backgroundColor: "#1a1a24",
+            border: "1px solid rgba(255,255,255,.12)",
+            borderRadius: "10px",
+            color: "#f2f2f8",
+            fontSize: "12px",
           }}
         />
         <Legend
-          formatter={(value: string) => <span className="text-xs text-muted">{value}</span>}
+          formatter={(value: string) => <span className="text-[11px] text-muted">{value}</span>}
         />
       </PieChart>
     </ResponsiveContainer>

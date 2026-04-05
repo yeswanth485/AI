@@ -2,24 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,700&family=Instrument+Sans:wght@400;500;600&display=swap');
+
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --ink: #0c0c10;
+  --ink2: #16161e;
+  --ink3: #1e1e28;
+  --card: #1a1a24;
+  --card2: #22222e;
+  --border: rgba(255,255,255,.07);
+  --border2: rgba(255,255,255,.12);
+  --lime: #c8ff00;
+  --lime2: #a8d600;
+  --teal: #00d4b8;
+  --purple: #9b7afe;
+  --orange: #ff7043;
+  --red: #ff4444;
+  --blue: #4da6ff;
+  --text: #f2f2f8;
+  --text2: #8888aa;
+  --text3: #44445a;
+  --r: 10px;
+  --r2: 16px;
+  --r3: 22px;
 }
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Inter", sans-serif;
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Instrument Sans', sans-serif;
+  overflow-x: hidden;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1f1f1f #0a0a0a;
+  scrollbar-color: var(--ink3) var(--ink);
 }
 
 ::-webkit-scrollbar {
@@ -27,10 +49,50 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--ink);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1f1f1f;
+  background: var(--ink3);
   border-radius: 3px;
 }
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fraunces', serif;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes scanline {
+  0% { top: -20%; }
+  100% { top: 110%; }
+}
+
+.animate-fadeUp { animation: fadeUp .55s ease forwards; }
+.animate-fadeIn { animation: fadeIn .2s ease; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-custom { animation: pulse 2s infinite; }

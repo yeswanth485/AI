@@ -26,25 +26,26 @@ export default function EfficiencyTrendChart({ data }: EfficiencyTrendChartProps
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-        <XAxis dataKey="order_id" stroke="#6b7280" fontSize={12} />
-        <YAxis stroke="#6b7280" fontSize={12} domain={[0, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.05)" />
+        <XAxis dataKey="order_id" stroke="#44445a" fontSize={11} />
+        <YAxis stroke="#44445a" fontSize={11} domain={[0, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} />
         <Tooltip
           contentStyle={{
-            backgroundColor: "#111111",
-            border: "1px solid #1f1f1f",
-            borderRadius: "8px",
-            color: "#ededed",
+            backgroundColor: "#1a1a24",
+            border: "1px solid rgba(255,255,255,.12)",
+            borderRadius: "10px",
+            color: "#f2f2f8",
+            fontSize: "12px",
           }}
           formatter={(value: unknown) => [`${(Number(value) * 100).toFixed(1)}%`, "Efficiency"]}
         />
         <Line
           type="monotone"
           dataKey="efficiency"
-          stroke="#3b82f6"
+          stroke="#00d4b8"
           strokeWidth={2}
-          dot={{ fill: "#3b82f6", r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{ fill: "#00d4b8", r: 3 }}
+          activeDot={{ r: 5 }}
         />
       </LineChart>
     </ResponsiveContainer>

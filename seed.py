@@ -1,8 +1,9 @@
 from database import SessionLocal, Base, engine
 from models import User, Product, BoxInventory, ShippingRate
-from passlib.context import CryptContext
+import bcrypt
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 # Drop all tables and recreate them to ensure schema matches models
 # Using raw SQL to handle CASCADE for dependent objects
@@ -34,7 +35,7 @@ try:
         admin = User(
             name="Admin User",
             email="admin@packai.com",
-            hashed_password=pwd_context.hash("admin123"),
+            hashed_password=hash_password("admin123"),
         )
         db.add(admin)
 

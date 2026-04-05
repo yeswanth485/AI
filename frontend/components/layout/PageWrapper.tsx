@@ -5,7 +5,7 @@ interface PageWrapperProps {
 export default function PageWrapper({ children }: PageWrapperProps) {
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="p-6">{children}</div>
+      <div className="p-5">{children}</div>
     </div>
   );
 }

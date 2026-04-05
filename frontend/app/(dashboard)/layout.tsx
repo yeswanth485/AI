@@ -8,12 +8,13 @@ import PageWrapper from "@/components/layout/PageWrapper";
 import { useAuth } from "@/hooks/useAuth";
 
 const pageTitleMap: Record<string, string> = {
-  "/dashboard": "Dashboard",
+  "/dashboard": "Overview",
   "/orders": "Orders",
   "/inventory": "Inventory",
-  "/optimization": "Optimization",
+  "/optimization": "Optimize",
   "/analytics": "Analytics",
   "/settings": "Settings",
+  "/upload": "Upload",
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -40,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <div className="flex flex-1 flex-col pl-64">
+      <div className="flex flex-1 flex-col pl-[210px]">
         <Header title={title} />
         <PageWrapper>{children}</PageWrapper>
       </div>

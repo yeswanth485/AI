@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, User } from "lucide-react";
+import { Bell } from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -11,18 +11,20 @@ export default function Header({ title }: HeaderProps) {
   const { user } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-sm">
-      <h1 className="text-lg font-semibold text-foreground">{title}</h1>
-      <div className="flex items-center gap-4">
-        <button className="relative rounded-lg p-2 text-muted hover:bg-surface hover:text-foreground transition-all">
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent-red" />
+    <header className="sticky top-0 z-30 flex h-[52px] items-center justify-between border-b border-border bg-ink2/95 backdrop-blur-sm px-5">
+      <div>
+        <h2 className="font-display text-[17px] font-black tracking-tight text-foreground">{title}</h2>
+      </div>
+      <div className="flex items-center gap-2">
+        <button className="relative rounded-lg p-1.5 text-muted hover:text-foreground transition-all">
+          <Bell className="h-4 w-4" />
+          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent-red animate-pulse-custom" />
         </button>
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-1.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/20">
-            <User className="h-3.5 w-3.5 text-accent" />
+        <div className="flex items-center gap-2 rounded-lg bg-surface border border-border px-3 py-1.5">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15">
+            <span className="text-[11px] font-bold text-accent">{(user?.name || "U")[0].toUpperCase()}</span>
           </div>
-          <span className="text-sm font-medium text-foreground">{user?.name || "User"}</span>
+          <span className="text-[13px] font-medium text-foreground">{user?.name || "User"}</span>
         </div>
       </div>
     </header>

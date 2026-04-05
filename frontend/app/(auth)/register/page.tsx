@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Package } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { register } from "@/services/auth.service";
@@ -34,23 +33,46 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent">
-            <Package className="h-6 w-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Create account</h1>
-          <p className="mt-1 text-sm text-muted">Get started with PackAI</p>
+    <div className="min-h-screen grid grid-cols-2">
+      <div className="bg-surface p-12 flex flex-col justify-between border-r border-border relative overflow-hidden">
+        <div className="absolute w-[400px] h-[400px] rounded-full bg-[radial-gradient(rgba(200,255,0,.07),transparent)] bottom-[-150px] left-[-100px] pointer-events-none" />
+        <div>
+          <span className="font-display text-[20px] font-black tracking-tight">
+            Pack<span className="text-accent not-italic">AI</span>
+          </span>
         </div>
+        <div>
+          <h2 className="font-display text-2xl font-black text-foreground mb-2 tracking-tight">
+            Start saving on<br /><span className="text-accent">packaging today</span>
+          </h2>
+          <p className="text-sm text-muted leading-relaxed">
+            Create your account and start optimizing packaging costs in minutes.
+          </p>
+        </div>
+        <div className="flex gap-8">
+          <div>
+            <div className="font-display text-2xl font-black text-accent">200ms</div>
+            <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Per decision</div>
+          </div>
+          <div>
+            <div className="font-display text-2xl font-black text-accent">35%</div>
+            <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Cost reduction</div>
+          </div>
+        </div>
+      </div>
 
-        <div className="rounded-xl border border-border bg-surface p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-lg bg-accent-red/10 px-3 py-2 text-sm text-accent-red border border-accent-red/20">
-                {error}
-              </div>
-            )}
+      <div className="flex items-center justify-center p-12">
+        <div className="w-full max-w-[360px]">
+          <h2 className="font-display text-[28px] font-black tracking-tight mb-1">Create account</h2>
+          <p className="text-[13px] text-muted mb-6">Get started with PackAI</p>
+
+          {error && (
+            <div className="bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-xl text-[13px] mb-4">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <Input
               id="register-name"
               label="Full Name"
@@ -78,18 +100,18 @@ export default function RegisterPage() {
               required
               minLength={6}
             />
-            <Button type="submit" loading={loading} className="w-full">
-              Create Account
+            <Button type="submit" loading={loading} className="w-full mt-2">
+              Create Account →
             </Button>
           </form>
-        </div>
 
-        <p className="mt-6 text-center text-sm text-muted">
-          Already have an account?{" "}
-          <Link href="/login" className="text-accent hover:underline">
-            Sign in
-          </Link>
-        </p>
+          <p className="mt-4 text-center text-[13px] text-muted">
+            Already have an account?{" "}
+            <Link href="/login" className="text-accent font-semibold hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,16 +1,15 @@
 export default function Spinner({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sizes = {
-    sm: "h-4 w-4",
-    md: "h-8 w-8",
-    lg: "h-12 w-12",
+    sm: "h-3.5 w-3.5 border-2",
+    md: "h-8 w-8 border-2",
+    lg: "h-12 w-12 border-[3px]",
   };
 
   return (
     <div className="flex items-center justify-center">
-      <svg className={`${sizes[size]} animate-spin`} viewBox="0 0 24 24" fill="none">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-      </svg>
+      <div
+        className={`${sizes[size]} rounded-full border-accent/20 border-t-accent animate-spin`}
+      />
     </div>
   );
 }

@@ -9,8 +9,9 @@ import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
 import { useAppContext } from "@/context/AppContext";
-import { Zap, RotateCcw } from "lucide-react";
+import { Zap, RotateCcw, RefreshCw, CheckCircle } from "lucide-react";
 
 export default function OptimizationPage() {
   const searchParams = useSearchParams();
@@ -21,8 +22,11 @@ export default function OptimizationPage() {
   const [selectedOrder, setSelectedOrder] = useState<number>(
     preselectedOrder ? Number(preselectedOrder) : 0
   );
+  const [statusFilter, setStatusFilter] = useState<string>("pending");
 
   const pendingOrders = orders.filter((o) => o.status === "pending");
+  const completedOrders = orders.filter((o) => o.status === "optimized");
+  const failedOrders = orders.filter((o) => o.status === "failed");
 
   useEffect(() => {
     if (preselectedOrder) {
@@ -55,81 +59,170 @@ export default function OptimizationPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Packaging Optimization</h2>
-        <p className="text-sm text-muted">Select an order and run the optimization engine</p>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-lg font-black text-foreground tracking-tight">Optimize</h2>
+          <p className="text-[12px] text-muted-dark mt-0.5">Rule-based FFD engine</p>
+        </div>
+        <button
+          onClick={refetch}
+          className="flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-[12px] font-semibold text-muted hover:text-foreground hover:border-border2 transition-all"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </button>
       </div>
 
+      {/* Step Flow */}
+      <div className="flex items-center gap-0 overflow-x-auto pb-1">
+        {[
+          { n: 1, label: "Upload CSV / Excel" },
+          { n: 2, label: "Configure" },
+          { n: 3, label: "Optimize" },
+          { n: 4, label: "Results" },
+        ].map((s, i) => (
+          <div key={s.n} className="flex items-center">
+            <div
+              className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all whitespace-nowrap ${
+                result
+                  ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                  : "bg-accent/10 text-accent border border-accent/25"
+              }`}
+            >
+              {result ? <CheckCircle className="h-3.5 w-3.5" /> : s.n}
+              {s.label}
+            </div>
+            {i < 3 && <div className="flex-1 h-px bg-border mx-2 min-w-[12px]" />}
+          </div>
+        ))}
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {[
+          { key: "pending", label: "All Pending", count: pendingOrders.length },
+          { key: "completed", label: "Completed", count: completedOrders.length },
+          { key: "failed", label: "Failed", count: failedOrders.length },
+        ].map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setStatusFilter(f.key)}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold transition-all whitespace-nowrap ${
+              statusFilter === f.key
+                ? "bg-accent/10 text-accent border border-accent/20"
+                : "bg-surface border border-border text-muted hover:border-border2"
+            }`}
+          >
+            {f.label}
+            <span className="text-[10px] text-muted-dark">{f.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Loading */}
       {optLoading && (
         <Card>
           <div className="flex flex-col items-center justify-center py-12">
             <Spinner size="lg" />
             <p className="mt-4 text-sm text-muted">Calculating optimal packaging...</p>
+            <p className="text-[11px] text-muted-dark mt-1">Rule-based FFD engine</p>
           </div>
         </Card>
       )}
 
+      {/* Error */}
       {optError && (
         <EmptyState
           title="Optimization Failed"
           description={optError}
           action={
             <Button onClick={handleReset}>
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-3.5 w-3.5" />
               Try Again
             </Button>
           }
         />
       )}
 
+      {/* Result */}
       {result && !optLoading && (
         <OptimizationResultCard result={result} />
       )}
 
+      {/* Order Selection */}
       {!result && !optLoading && (
         <Card>
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-muted">
+              <label className="mb-1.5 block text-[11px] font-bold text-muted-dark uppercase tracking-wider">
                 Select Order
               </label>
               <select
                 value={selectedOrder}
                 onChange={(e) => setSelectedOrder(Number(e.target.value))}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-accent"
+                className="w-full rounded-xl border border-border2 bg-surface2 px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(200,255,0,.08)] transition-all"
               >
                 <option value={0}>Choose a pending order...</option>
-                {pendingOrders.map((order) => (
+                {statusFilter === "pending" && pendingOrders.map((order) => (
                   <option key={order.id} value={order.id}>
                     Order #{order.id} — {order.shipping_zone} ({order.items?.length || 0} items)
+                  </option>
+                ))}
+                {statusFilter === "completed" && completedOrders.map((order) => (
+                  <option key={order.id} value={order.id}>
+                    Order #{order.id} — {order.shipping_zone} ✓
+                  </option>
+                ))}
+                {statusFilter === "failed" && failedOrders.map((order) => (
+                  <option key={order.id} value={order.id}>
+                    Order #{order.id} — {order.shipping_zone} ✗
                   </option>
                 ))}
               </select>
             </div>
 
-            {pendingOrders.length === 0 && (
-              <div className="rounded-lg bg-border/50 px-4 py-3 text-sm text-muted">
-                No pending orders available. Create an order first.
+            {pendingOrders.length === 0 && statusFilter === "pending" && (
+              <div className="rounded-xl bg-border/50 px-4 py-3 text-[13px] text-muted">
+                No pending orders available. Upload orders first.
               </div>
             )}
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2.5 pt-2">
               <Button
                 onClick={handleOptimize}
                 disabled={!selectedOrder}
                 loading={optLoading}
               >
-                <Zap className="h-4 w-4" />
-                Run Optimization
+                <Zap className="h-3.5 w-3.5" />
+                Run AI packaging engine
               </Button>
               {result && (
                 <Button variant="ghost" onClick={handleReset}>
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="h-3.5 w-3.5" />
                   Reset
                 </Button>
               )}
             </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Completed Orders List */}
+      {statusFilter === "completed" && completedOrders.length > 0 && (
+        <Card>
+          <div className="text-[13px] font-semibold text-foreground mb-3">Completed Optimizations</div>
+          <div className="space-y-2">
+            {completedOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-accent-green" />
+                  <span className="font-mono text-[12px] text-accent">#{order.id}</span>
+                  <span className="text-[12px] text-muted">{order.shipping_zone}</span>
+                </div>
+                <Badge variant="success">optimized</Badge>
+              </div>
+            ))}
           </div>
         </Card>
       )}

@@ -67,77 +67,27 @@ export default function AddBoxForm({ onSubmit, onCancel }: AddBoxFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        id="box-name"
-        label="Box Name"
-        value={form.name}
-        onChange={(e) => update("name", e.target.value)}
-        error={errors.name}
-        placeholder="e.g., Standard Box A"
-      />
-      <div className="grid grid-cols-3 gap-3">
-        <Input
-          id="box-length"
-          label="Length (cm)"
-          type="number"
-          step="0.1"
-          value={form.length_cm}
-          onChange={(e) => update("length_cm", e.target.value)}
-          error={errors.length_cm}
-        />
-        <Input
-          id="box-width"
-          label="Width (cm)"
-          type="number"
-          step="0.1"
-          value={form.width_cm}
-          onChange={(e) => update("width_cm", e.target.value)}
-          error={errors.width_cm}
-        />
-        <Input
-          id="box-height"
-          label="Height (cm)"
-          type="number"
-          step="0.1"
-          value={form.height_cm}
-          onChange={(e) => update("height_cm", e.target.value)}
-          error={errors.height_cm}
-        />
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      <Input id="box-name" label="Box Name" value={form.name} onChange={(e) => update("name", e.target.value)} error={errors.name} placeholder="e.g., Standard Box A" />
+      <div className="grid grid-cols-3 gap-2.5">
+        <Input id="box-length" label="Length (cm)" type="number" step="0.1" value={form.length_cm} onChange={(e) => update("length_cm", e.target.value)} error={errors.length_cm} />
+        <Input id="box-width" label="Width (cm)" type="number" step="0.1" value={form.width_cm} onChange={(e) => update("width_cm", e.target.value)} error={errors.width_cm} />
+        <Input id="box-height" label="Height (cm)" type="number" step="0.1" value={form.height_cm} onChange={(e) => update("height_cm", e.target.value)} error={errors.height_cm} />
       </div>
-      <Input
-        id="box-weight"
-        label="Max Weight (kg)"
-        type="number"
-        step="0.1"
-        value={form.max_weight_kg}
-        onChange={(e) => update("max_weight_kg", e.target.value)}
-        error={errors.max_weight_kg}
-      />
-      <Input
-        id="box-qty"
-        label="Available Quantity"
-        type="number"
-        value={form.quantity_available}
-        onChange={(e) => update("quantity_available", e.target.value)}
-        error={errors.quantity_available}
-      />
-      <label className="flex items-center gap-2 text-sm text-muted">
+      <Input id="box-weight" label="Max Weight (kg)" type="number" step="0.1" value={form.max_weight_kg} onChange={(e) => update("max_weight_kg", e.target.value)} error={errors.max_weight_kg} />
+      <Input id="box-qty" label="Available Quantity" type="number" value={form.quantity_available} onChange={(e) => update("quantity_available", e.target.value)} error={errors.quantity_available} />
+      <label className="flex items-center gap-2 text-[13px] text-muted cursor-pointer">
         <input
           type="checkbox"
           checked={form.supports_fragile}
           onChange={(e) => update("supports_fragile", e.target.checked)}
-          className="rounded border-border bg-surface text-accent focus:ring-accent"
+          className="rounded border-border2 bg-surface2 text-accent focus:ring-accent focus:ring-offset-0"
         />
         Supports Fragile Items
       </label>
-      <div className="flex justify-end gap-3 pt-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" loading={loading}>
-          Add Box
-        </Button>
+      <div className="flex justify-end gap-2.5 pt-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" loading={loading}>Add Box →</Button>
       </div>
     </form>
   );

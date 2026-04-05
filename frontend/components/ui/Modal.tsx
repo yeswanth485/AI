@@ -11,21 +11,18 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-lg rounded-2xl border border-border2 bg-surface shadow-2xl max-h-[88vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <h2 className="font-display text-base font-bold text-foreground tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-muted hover:bg-border hover:text-foreground transition-all"
+            className="w-7 h-7 rounded-full bg-surface2 border border-border flex items-center justify-center text-muted hover:border-accent hover:text-accent transition-all text-sm"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ×
           </button>
         </div>
-        {children}
+        <div className="p-5">{children}</div>
       </div>
     </div>
   );
