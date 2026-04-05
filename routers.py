@@ -267,11 +267,18 @@ def get_order_optimization_status(order_id: int, db: Session = Depends(get_db)):
                 "position_x": pi.position_x,
                 "position_y": pi.position_y,
                 "position_z": pi.position_z,
-                "layer": pi.position_z,
+                "layer": "bottom" if pi.position_y == 0 else ("top" if (product and product.is_fragile) else "middle"),
                 "length_cm": product.length_cm if product else 0,
                 "width_cm": product.width_cm if product else 0,
                 "height_cm": product.height_cm if product else 0,
             })
+
+        item_order_data = []
+        if plan.item_order:
+            try:
+                item_order_data = json.loads(plan.item_order)
+            except (json.JSONDecodeError, TypeError):
+                item_order_data = []
 
         result.update({
             "recommended_box": box.name if box else None,
@@ -282,7 +289,7 @@ def get_order_optimization_status(order_id: int, db: Session = Depends(get_db)):
             "decision_explanation": plan.decision_explanation,
             "profit": round(float(getattr(plan, "profit", 0.0)), 2),
             "packing_instructions": plan.packing_instructions,
-            "item_order": plan.item_order if hasattr(plan, "item_order") else [],
+            "item_order": item_order_data,
             "packed_items": packed_items_data,
         })
 
@@ -308,7 +315,7 @@ async def upload_orders(
     file: UploadFile = File(...),
     user_id: int = Form(...),
     shipping_zone: str = Form(...),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db),
 ):
     if not file.filename or not (

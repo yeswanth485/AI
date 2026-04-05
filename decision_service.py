@@ -18,6 +18,7 @@ from cost_service import (
 from packing_service import items_fit_in_box, sort_items_ffd, PackingResult
 from pack_instruction_service import generate_instructions
 from validation_service import validate_result
+import json
 
 
 def optimize_packaging(db: Session, order_id: int) -> dict:
@@ -192,6 +193,7 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
         decision_explanation=decision_explanation,
         profit=profit,
         packing_instructions=instructions_data["instructions"],
+        item_order=json.dumps(instructions_data["item_order"]),
     )
     db.add(plan)
     db.flush()

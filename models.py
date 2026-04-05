@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.sql import func
 from database import Base
 
@@ -93,6 +93,7 @@ class PackagingPlan(Base):
     decision_explanation = Column(String, nullable=False)
     profit = Column(Float, nullable=False, default=0.0)
     packing_instructions = Column(String, nullable=True)
+    item_order = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 
