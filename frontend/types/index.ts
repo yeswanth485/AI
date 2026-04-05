@@ -15,7 +15,17 @@ export interface OrderItem {
 export interface Order {
   id: number;
   user_id: number;
+  channel_order_id?: string;
+  channel?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  customer_city?: string;
+  customer_state?: string;
+  customer_pincode?: string;
   shipping_zone: string;
+  payment_type?: string;
+  priority?: string;
+  category?: string;
   status: "pending" | "optimized" | "failed" | "no_savings";
   created_at: string;
   updated_at: string;

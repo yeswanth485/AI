@@ -66,7 +66,17 @@ class OrderItemResponse(BaseModel):
 class OrderResponse(BaseModel):
     id: int
     user_id: int
+    channel_order_id: Optional[str] = None
+    channel: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    customer_city: Optional[str] = None
+    customer_state: Optional[str] = None
+    customer_pincode: Optional[str] = None
     shipping_zone: str
+    payment_type: Optional[str] = None
+    priority: Optional[str] = None
+    category: Optional[str] = None
     status: str
     created_at: datetime
     updated_at: datetime
@@ -79,7 +89,14 @@ class OrderResponse(BaseModel):
 class OrderListResponse(BaseModel):
     id: int
     user_id: int
+    channel_order_id: Optional[str] = None
+    channel: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_city: Optional[str] = None
+    customer_pincode: Optional[str] = None
     shipping_zone: str
+    payment_type: Optional[str] = None
+    priority: Optional[str] = None
     status: str
     created_at: datetime
     updated_at: datetime

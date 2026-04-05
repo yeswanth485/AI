@@ -14,23 +14,34 @@ import OptimizationResultCard from "@/components/optimization/OptimizationResult
 import { useAppContext } from "@/context/AppContext";
 
 const platforms = [
-  { name: "Shiprocket", ico: "🚀", fields: "order_id, product_name, length_cm, breadth_cm, height_cm, weight_kg, quantity" },
-  { name: "Delhivery", ico: "📦", fields: "waybill, product_desc, length, width, height, act_weight, qty" },
-  { name: "Meesho", ico: "🛒", fields: "order_id, item_title, l_cm, b_cm, h_cm, dead_wt_kg, units" },
-  { name: "Amazon", ico: "📱", fields: "order_id, asin, l_cm, b_cm, h_cm, unit_wt, order_quantity" },
-  { name: "PackAI Standard", ico: "✅", fields: "order_id, product_name, sku, length, width, height, weight, quantity, fragility" },
+  { name: "PackAI Standard", ico: "✅", fields: "product_name, sku, length, width, height, weight, quantity, fragility, category, customer_name, phone, city, state, pincode, channel, payment_type, priority" },
+  { name: "Shiprocket", ico: "🚀", fields: "order_id, customer_name, phone, city, state, pincode, product_name, sku, length, width, height, weight, qty, fragile, category, payment_method" },
+  { name: "Shopify", ico: "🛍️", fields: "Name, Line: Title, Line: SKU, Line: Variant Weight, Line: Quantity, Shipping: City, Shipping: Province, Shipping: Zip, Shipping: Phone, Payment: Status, Source" },
+  { name: "Amazon FBA", ico: "📦", fields: "order-id, item-name, sku, length, width, height, weight, quantity, ship-city, ship-state, ship-postal-code, ship-phone-number, payment-method" },
+  { name: "Flipkart", ico: "🔵", fields: "Order ID, Item Name, SKU, Length, Breadth, Height, Weight, Quantity, Customer Name, City, State, Pincode, Phone, Payment Type" },
+  { name: "Meesho", ico: "🟡", fields: "order_id, item_title, sku, l_cm, b_cm, h_cm, dead_wt_kg, units, customer_name, city, state, pincode, phone, prepaid_or_cod" },
+  { name: "Delhivery", ico: "📮", fields: "waybill, product_desc, length, width, height, act_weight, qty, consignee_name, city, state, pin, phone, cod_flag" },
+  { name: "Unicommerce", ico: "🔗", fields: "order_no, item_name, sku, length_cm, width_cm, height_cm, weight_kg, quantity, buyer_name, city, state, pincode, mobile, channel" },
 ];
 
 const requiredFields = [
-  { name: "order_id", req: true },
-  { name: "product_name", req: true },
-  { name: "length (cm)", req: true },
-  { name: "width (cm)", req: true },
-  { name: "height (cm)", req: true },
-  { name: "weight (kg)", req: true },
-  { name: "quantity", req: false },
-  { name: "fragility", req: false },
-  { name: "pincode", req: false },
+  { name: "product_name", aliases: "item_name, title, description, asin", req: true },
+  { name: "length", aliases: "l, length_cm, item_length", req: true },
+  { name: "width / breadth", aliases: "w, width_cm, breadth, b", req: true },
+  { name: "height", aliases: "h, height_cm, depth, item_height", req: true },
+  { name: "weight", aliases: "weight_kg, item_weight, act_weight, dead_wt", req: true },
+  { name: "quantity", aliases: "qty, units, order_quantity", req: true },
+  { name: "fragility", aliases: "fragile, is_fragile, handle_with_care", req: false },
+  { name: "sku", aliases: "seller_sku, item_sku, variant_sku", req: false },
+  { name: "category", aliases: "product_type, item_type, department", req: false },
+  { name: "customer_name", aliases: "buyer_name, name, consignee", req: false },
+  { name: "phone", aliases: "mobile, contact_number, phone_number", req: false },
+  { name: "city", aliases: "customer_city, destination_city", req: false },
+  { name: "state", aliases: "customer_state, province, region", req: false },
+  { name: "pincode", aliases: "zip, postal_code, pin_code", req: false },
+  { name: "channel", aliases: "source, marketplace, platform", req: false },
+  { name: "payment_type", aliases: "payment_method, prepaid_or_cod, is_cod", req: false },
+  { name: "priority", aliases: "express, service_level, delivery_speed", req: false },
 ];
 
 export default function UploadPage() {
@@ -264,20 +275,22 @@ export default function UploadPage() {
         {/* Required Fields */}
         <div className="bg-accent/5 border border-accent/10 rounded-xl p-3">
           <div className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">Required fields (minimum to optimize)</div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-1.5">
             {requiredFields.map((f) => (
-              <span
-                key={f.name}
-                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+              <div key={f.name} className="flex items-center gap-2 text-[10px]">
+                <span className={`px-2 py-0.5 rounded-full font-semibold min-w-[100px] ${
                   f.req
                     ? "bg-accent/10 text-accent border border-accent/20"
                     : "bg-surface2 text-muted border border-border"
-                }`}
-              >
-                {f.name}
-                {f.req && ""}
-              </span>
+                }`}>
+                  {f.name}
+                </span>
+                <span className="text-muted-dark">aliases: {f.aliases}</span>
+              </div>
             ))}
+          </div>
+          <div className="text-[10px] text-muted-dark mt-2 pt-2 border-t border-border/50">
+            Auto-detects columns from Shiprocket, Shopify, Amazon, Flipkart, Meesho, Delhivery, Unicommerce exports
           </div>
         </div>
       </Card>

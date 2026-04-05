@@ -1,0 +1,110 @@
+product_name,sku,length,width,height,weight,quantity,fragility,category,customer_name,phone,city,state,pincode,channel,payment_type,priority
+Wireless Mouse,MOU-BT-001,12,7,4,0.1,1,no,Electronics,Rahul Sharma,9876543210,Mumbai,Maharashtra,400001,Shopify,Prepaid,Standard
+Laptop 15 inch,LAP-HP-15,36,25,3,2,1,yes,Electronics,Priya Patel,9876543211,Delhi,Delhi,110001,Amazon,Prepaid,Express
+Monitor 24 inch,MON-LG-24,55,35,8,4.5,1,yes,Electronics,Amit Kumar,9876543212,Bangalore,Karnataka,560001,Flipkart,Prepaid,Standard
+Keyboard,KEY-LOG-01,45,15,3,0.8,1,no,Electronics,Sneha Reddy,9876543213,Chennai,Tamil Nadu,600001,Shopify,COD,Standard
+USB Cable,USB-C-001,15,10,2,0.05,3,no,Accessories,Vikram Singh,9876543214,Hyderabad,Telangana,500001,Meesho,Prepaid,Standard
+Headphones,HPH-SNY-01,20,18,10,0.3,1,yes,Electronics,Ananya Iyer,9876543215,Kolkata,West Bengal,700001,Amazon,Prepaid,Express
+Webcam,WEB-LOG-C270,10,5,5,0.15,1,yes,Electronics,Rohit Verma,9876543216,Pune,Maharashtra,411001,Flipkart,Prepaid,Standard
+Power Bank,PWR-MI-20K,15,7,2,0.4,2,no,Accessories,Deepa Nair,9876543217,Jaipur,Rajasthan,302001,Shopify,COD,Standard
+Tablet 10 inch,TAB-SAM-10,25,17,1,0.5,1,yes,Electronics,Karthik Raj,9876543218,Ahmedabad,Gujarat,380001,Amazon,Prepaid,Express
+Smartphone,PHN-SAM-A14,16,8,1,0.2,1,yes,Electronics,Meera Joshi,9876543219,Lucknow,Uttar Pradesh,226001,Flipkart,COD,Standard
+Bluetooth Speaker,SPK-JBL-FLP,18,8,8,0.6,1,no,Electronics,Suresh Menon,9876543220,Kochi,Kerala,682001,Shopify,Prepaid,Standard
+Laptop Charger,CHR-HP-65W,12,6,3,0.3,1,no,Accessories,Lakshmi P,9876543221,Coimbatore,Tamil Nadu,641001,Meesho,Prepaid,Standard
+Mouse Pad XL,PAD-LOG-XL,40,30,0.5,0.2,1,no,Accessories,Arjun Das,9876543222,Visakhapatnam,Andhra Pradesh,530001,Amazon,Prepaid,Standard
+HDMI Cable 2m,HDM-UG-2M,20,12,3,0.1,3,no,Accessories,Pooja Gupta,9876543223,Chandigarh,Chandigarh,160001,Shopify,Prepaid,Standard
+External SSD 1TB,SSD-SAM-T7,10,6,1,0.05,1,yes,Electronics,Nikhil Rao,9876543224,Indore,Madhya Pradesh,452001,Flipkart,Prepaid,Express
+Printer Ink,INK-HP-680,12,5,5,0.15,2,no,Office Supplies,Ritu Sharma,9876543225,Nagpur,Maharashtra,440001,Amazon,COD,Standard
+WiFi 6 Router,RTR-TP-AX10,25,20,5,0.5,1,no,Electronics,Ganesh Pillai,9876543226,Thiruvananthapuram,Kerala,695001,Shopify,Prepaid,Standard
+Smart Watch,WCH-NOI-8,10,10,5,0.1,1,yes,Electronics,Divya Menon,9876543227,Mangalore,Karnataka,575001,Meesho,Prepaid,Express
+Phone Case,CAS-IP14-CLR,16,8,2,0.05,5,no,Accessories,Aditya Singh,9876543228,Patna,Bihar,800001,Flipkart,COD,Standard
+Screen Protector,SCR-IP14-TG,16,8,0.5,0.02,10,no,Accessories,Kavitha R,9876543229,Mysore,Karnataka,570001,Shopify,Prepaid,Standard
+Desk Lamp LED,LMP-PHI-LED,20,15,30,0.8,1,yes,Home & Office,Manoj Tiwari,9876543230,Bhopal,Madhya Pradesh,462001,Amazon,Prepaid,Standard
+Cable Organizer,ORG-BAS-01,15,10,5,0.1,3,no,Accessories,Swati Kulkarni,9876543231,Nashik,Maharashtra,422001,Meesho,Prepaid,Standard
+Laptop Stand,STD-ERG-AL,25,20,3,0.6,1,no,Accessories,Ravi Shankar,9876543232,Vijayawada,Andhra Pradesh,520001,Shopify,Prepaid,Standard
+Wireless Charger,WCP-SAM-15W,10,10,1.5,0.15,2,no,Accessories,Anjali Desai,9876543233,Rajkot,Gujarat,360001,Amazon,Prepaid,Standard
+USB Hub 7-port,HUB-TP-7P,15,5,2,0.1,1,no,Accessories,Sanjay Kumar,9876543234,Kanpur,Uttar Pradesh,208001,Flipkart,Prepaid,Standard
+Gaming Mouse,MOU-LOG-G502,13,8,5,0.15,1,no,Electronics,Yash Malhotra,9876543235,Gurgaon,Haryana,122001,Shopify,Prepaid,Express
+Mech Keyboard,KEY-COR-K70,46,16,4,1,1,no,Electronics,Ishaan Kapoor,9876543236,Noida,Uttar Pradesh,201301,Amazon,Prepaid,Express
+Curved Monitor,MON-SAM-C32,72,42,10,6,1,yes,Electronics,Neha Agarwal,9876543237,Faridabad,Haryana,121001,Flipkart,Prepaid,Standard
+Mini PC,MIN-INT-NUC,18,18,5,1.2,1,no,Electronics,Varun Mehta,9876543238,Ghaziabad,Uttar Pradesh,201001,Shopify,Prepaid,Standard
+Docking Station,DCK-HP-USB,22,10,3,0.5,1,no,Accessories,Reena Saxena,9876543239,Agra,Uttar Pradesh,282001,Meesho,Prepaid,Standard
+Portable Monitor,MON-ASP-15,36,23,2,1,1,yes,Electronics,Arun Prasad,9876543240,Madurai,Tamil Nadu,625001,Amazon,Prepaid,Standard
+Drawing Tablet,TAB-WAC-INT,35,23,1,0.8,1,yes,Electronics,Shreya Bhat,9876543241,Hubli,Karnataka,580001,Shopify,Prepaid,Standard
+Microphone,MIC-BLU-YETI,20,8,8,0.4,1,yes,Electronics,Kabir Singh,9876543242,Dehradun,Uttarakhand,248001,Flipkart,Prepaid,Express
+Ring Light,LMP-NEE-18,30,30,5,1,1,yes,Photography,Tanya Roy,9876543243,Guwahati,Assam,781001,Meesho,COD,Standard
+Tripod,TRI-VEO-PRO,50,10,10,1.5,1,no,Photography,Harish Rao,9876543244,Ranchi,Jharkhand,834001,Amazon,Prepaid,Standard
+SD Card 128GB,SD-SAN-128,3,2,0.2,0.01,5,no,Accessories,Geeta Menon,9876543245,Bhubaneswar,Odisha,751001,Shopify,Prepaid,Standard
+RAM Stick 16GB,RAM-COR-16,13,4,1,0.05,2,yes,Electronics,Rajesh Pillai,9876543246,Cuttack,Odisha,753001,Flipkart,Prepaid,Standard
+Graphics Card,GPU-NVD-RTX,30,14,6,1.5,1,yes,Electronics,Akash Jain,9876543247,Amritsar,Punjab,143001,Amazon,Prepaid,Express
+CPU Processor,CPU-AMD-R7,5,5,1,0.1,1,yes,Electronics,Simran Kaur,9876543248,Ludhiana,Punjab,141001,Shopify,Prepaid,Express
+Motherboard,MBO-ASU-B550,30,24,5,1.2,1,yes,Electronics,Mohit Sharma,9876543249,Jodhpur,Rajasthan,342001,Flipkart,Prepaid,Standard
+Power Supply,PSU-COR-750,15,14,9,1.8,1,no,Electronics,Pallavi Deshmukh,9876543250,Aurangabad,Maharashtra,431001,Meesho,Prepaid,Standard
+PC Case,CSE-NZT-H7,50,22,48,8,1,no,Electronics,Vivek Rao,9876543251,Surat,Gujarat,395001,Amazon,Prepaid,Standard
+Cooling Fan,FAN-NZT-120,12,12,3,0.2,3,no,Electronics,Komal Singh,9876543252,Vadodara,Gujarat,390001,Shopify,Prepaid,Standard
+Thermal Paste,THM-AR-MX4,8,3,2,0.05,2,no,Accessories,Abhishek Yadav,9876543253,Allahabad,Uttar Pradesh,211001,Flipkart,COD,Standard
+Screwdriver Kit,SCR-IFIX-PRO,20,10,3,0.3,1,no,Tools,Pradeep Kumar,9876543254,Varanasi,Uttar Pradesh,221001,Meesho,Prepaid,Standard
+Ethernet Cable,ETH-CAT6-5M,18,14,4,0.2,2,no,Accessories,Seema Gupta,9876543255,Meerut,Uttar Pradesh,250001,Amazon,Prepaid,Standard
+Surge Protector,SRG-APC-6,30,8,5,0.6,1,no,Accessories,Ramesh Iyer,9876543256,Bareilly,Uttar Pradesh,243001,Shopify,Prepaid,Standard
+Label Maker,LBL-BRO-PT,18,8,6,0.3,1,no,Office Supplies,Sunita Devi,9876543257,Moradabad,Uttar Pradesh,244001,Flipkart,COD,Standard
+Barcode Scanner,BCS-HON-1900,16,7,10,0.2,1,yes,Office Supplies,Dinesh Kumar,9876543258,Aligarh,Uttar Pradesh,202001,Amazon,Prepaid,Standard
+Receipt Printer,RCP-EPN-TM,20,15,12,1.5,1,no,Office Supplies,Manisha Singh,9876543259,Gorakhpur,Uttar Pradesh,273001,Meesho,Prepaid,Standard
+Cash Drawer,CSD-APG-410,40,42,12,5,1,no,Office Supplies,Rajiv Malhotra,9876543260,Jammu,Jammu & Kashmir,180001,Shopify,Prepaid,Standard
+Tablet Stand,STD-ERG-TAB,15,12,3,0.3,1,no,Accessories,Anita Sharma,9876543261,Srinagar,Jammu & Kashmir,190001,Flipkart,COD,Standard
+Stylus Pen,STY-APL-PNCL,18,2,2,0.02,3,no,Accessories,Saurabh Verma,9876543262,Shimla,Himachal Pradesh,171001,Amazon,Prepaid,Standard
+Laptop Bag,BAG-HP-15,42,30,8,0.6,1,no,Accessories,Priyanka Das,9876543263,Dehradun,Uttarakhand,248002,Meesho,Prepaid,Standard
+Mouse Wrist Rest,MWR-GEL-BLK,25,10,3,0.2,1,no,Accessories,Gaurav Joshi,9876543264,Haridwar,Uttarakhand,249401,Shopify,Prepaid,Standard
+Keyboard Wrist Rest,KWR-GEL-BLK,45,10,3,0.3,1,no,Accessories,Nisha Patel,9876543265,Roorkee,Uttarakhand,247667,Flipkart,Prepaid,Standard
+Monitor Arm,ARM-ERG-DUAL,55,12,8,2,1,no,Accessories,Vinay Kumar,9876543266,Panaji,Goa,403001,Amazon,Prepaid,Standard
+Cable Clips Pack,CLP-ADH-20,8,6,2,0.05,1,no,Accessories,Reshma Nair,9876543267,Margao,Goa,403601,Meesho,Prepaid,Standard
+Desk Mat XXL,DMT-LOG-XXL,80,30,0.3,0.5,1,no,Accessories,Ashok Reddy,9876543268,Warangal,Telangana,506001,Shopify,Prepaid,Standard
+LED Strip 5m,LED-RGB-5M,20,15,5,0.3,1,no,Home & Office,Shalini Rao,9876543269,Nellore,Andhra Pradesh,524001,Flipkart,Prepaid,Standard
+Smart Plug,SPG-TP-KL11,8,6,6,0.1,4,no,Smart Home,Ravi Kumar,9876543270,Tirupati,Andhra Pradesh,517501,Amazon,Prepaid,Standard
+Security Camera,CAM-TP-2K,10,8,15,0.3,2,yes,Smart Home,Venkat Rao,9876543271,Guntur,Andhra Pradesh,522001,Meesho,Prepaid,Standard
+Doorbell Camera,DBL-RIN-4,12,6,3,0.2,1,yes,Smart Home,Padma Devi,9876543272,Rajahmundry,Andhra Pradesh,533101,Shopify,Prepaid,Standard
+Smart Bulb,BLB-TP-KL60,8,8,12,0.1,3,no,Smart Home,Srinivas Rao,9876543273,Kakinada,Andhra Pradesh,533001,Flipkart,Prepaid,Standard
+Robot Vacuum,VAC-XIA-S10,35,35,10,3,1,no,Home Appliances,Laxmi Bai,9876543274,Vizianagaram,Andhra Pradesh,535001,Amazon,Prepaid,Express
+Air Purifier,APR-XIA-4,30,20,45,4,1,no,Home Appliances,Murali Krishna,9876543275,Srikakulam,Andhra Pradesh,532001,Meesho,Prepaid,Standard
+Humidifier,HUM-XIA-2,25,15,30,2,1,yes,Home Appliances,Krishna Murthy,9876543276,Kurnool,Andhra Pradesh,518001,Shopify,Prepaid,Standard
+Electric Kettle,KET-PHI-1.5,22,16,25,1.2,1,yes,Kitchen Appliances,Srinivasulu,9876543277,Kadapa,Andhra Pradesh,516001,Flipkart,COD,Standard
+Coffee Maker,CFM-PHI-CM,28,20,35,3,1,yes,Kitchen Appliances,Venkatesh,9876543278,Anantapur,Andhra Pradesh,515001,Amazon,Prepaid,Standard
+Blender,BLN-PHI-HL77,20,18,38,2.5,1,yes,Kitchen Appliances,Raghavendra,9876543279,Chittoor,Andhra Pradesh,517001,Meesho,Prepaid,Standard
+Toaster,TST-PHI-HD25,28,18,20,1.5,1,no,Kitchen Appliances,Praveen Kumar,9876543280,Ongole,Andhra Pradesh,523001,Shopify,Prepaid,Standard
+Microwave,MW-SAM-28L,48,38,28,12,1,yes,Kitchen Appliances,Suresh Babu,9876543281,Eluru,Andhra Pradesh,534001,Flipkart,Prepaid,Standard
+Rice Cooker,RCK-PHI-1.8,28,28,25,3,1,no,Kitchen Appliances,Ramesh Babu,9876543282,Machilipatnam,Andhra Pradesh,521001,Amazon,Prepaid,Standard
+Pressure Cooker,PC-HAW-5L,30,30,32,4,1,no,Kitchen Appliances,Vijay Kumar,9876543283,Bhimavaram,Andhra Pradesh,534201,Meesho,COD,Standard
+Frying Pan Set,FP-TRG-3PC,45,30,15,2,1,no,Kitchen Appliances,Nagaraju,9876543284,Tadepalligudem,Andhra Pradesh,534101,Shopify,Prepaid,Standard
+Knife Set,KNF-PIL-7PC,35,15,8,1.5,1,yes,Kitchen Appliances,Srinivasa Rao,9876543285,Gudivada,Andhra Pradesh,521301,Flipkart,Prepaid,Standard
+Cutting Board,CB-WD-BAM,40,25,2,0.8,1,no,Kitchen Appliances,Ram Mohan,9876543286,Kaikaluru,Andhra Pradesh,521323,Amazon,Prepaid,Standard
+Spice Rack,SRK-SS-12J,30,12,30,1.5,1,no,Kitchen Appliances,Venkata Rao,9876543287,Narasapuram,Andhra Pradesh,534275,Meesho,Prepaid,Standard
+Water Bottle,WB-MIL-1L,8,8,25,0.3,3,no,Lifestyle,Satyanarayana,9876543288,Palacole,Andhra Pradesh,534260,Shopify,Prepaid,Standard
+Lunch Box,LB-MIL-3C,20,14,8,0.4,2,no,Lifestyle,Pavan Kumar,9876543289,Tanuku,Andhra Pradesh,534211,Flipkart,Prepaid,Standard
+Backpack,BP-WL-40L,45,30,15,0.8,1,no,Lifestyle,Sai Krishna,9876543290,Achanta,Andhra Pradesh,534171,Amazon,Prepaid,Standard
+Travel Adapter,TA-EP-UNI,8,6,6,0.15,2,no,Lifestyle,Chandra Sekhar,9876543291,Peddapuram,Andhra Pradesh,533437,Meesho,Prepaid,Standard
+Sunglasses,SG-RB-AVB,16,6,5,0.05,1,yes,Lifestyle,Ravi Teja,9876543292,Kakinada,Andhra Pradesh,533002,Shopify,Prepaid,Standard
+Wallet,WL-TOM-BIF,12,10,2,0.1,2,no,Lifestyle,Srinivas,9876543293,Rajahmundry,Andhra Pradesh,533102,Flipkart,COD,Standard
+Watch Box,WB-LUX-12S,25,15,8,0.5,1,no,Lifestyle,Mahesh Babu,9876543294,Amalapuram,Andhra Pradesh,533201,Amazon,Prepaid,Standard
+Jewelry Set,JS-SIL-COM,15,10,5,0.2,1,yes,Lifestyle,Lavanya,9876543295,Mandapeta,Andhra Pradesh,533302,Meesho,Prepaid,Standard
+Perfume,PRF-DV-SVG,10,6,12,0.3,1,yes,Lifestyle,Anushka,9876543296,Razole,Andhra Pradesh,533323,Shopify,Prepaid,Standard
+Book Set,BK-PKG-5,25,18,12,2,1,no,Books & Media,Sravani,9876543297,Mummidivaram,Andhra Pradesh,533216,Flipkart,Prepaid,Standard
+Board Game,BG-MON-CLS,40,30,8,1.5,1,no,Toys & Games,Venkata Lakshmi,9876543298,Katrenikona,Andhra Pradesh,533348,Amazon,Prepaid,Standard
+Puzzle 1000pc,PZ-RV-1000,30,20,6,1,1,no,Toys & Games,Sita Devi,9876543299,Ippili,Andhra Pradesh,533350,Meesho,Prepaid,Standard
+Yoga Mat,YM-MND-6MM,62,15,15,1,1,no,Fitness,Padmaja,9876543300,Kothapeta,Andhra Pradesh,533345,Shopify,Prepaid,Standard
+Dumbbell Set,DBS-CAP-20K,40,20,20,10,1,no,Fitness,Ram Prasad,9876543301,Pithapuram,Andhra Pradesh,533440,Flipkart,Prepaid,Standard
+Resistance Bands,RB-FIT-5S,20,15,5,0.5,1,no,Fitness,Ganesh,9876543302,Samalkota,Andhra Pradesh,533441,Amazon,Prepaid,Standard
+Jump Rope,JR-SPD-BRN,18,12,5,0.3,1,no,Fitness,Venkat,9876543303,Ravulapalem,Andhra Pradesh,533238,Meesho,Prepaid,Standard
+Tennis Racket,TR-WIL-PRO,35,25,5,0.3,1,yes,Sports,Kiran Kumar,9876543304,Akividu,Andhra Pradesh,534235,Shopify,Prepaid,Standard
+Football,FB-NIK-SZ5,30,20,20,0.4,1,no,Sports,Srinivas Rao,9876543305,Undi,Andhra Pradesh,534218,Flipkart,COD,Standard
+Basketball,BB-SPL-OF,30,25,25,0.6,1,no,Sports,Raj Kumar,9876543306,Palakollu,Andhra Pradesh,534260,Amazon,Prepaid,Standard
+Cricket Bat,CB-SG-EN,90,12,5,1.2,1,no,Sports,Vijay,9876543307,Narasannapeta,Andhra Pradesh,532264,Meesho,Prepaid,Standard
+Badminton Set,BMS-YON-2P,70,20,8,1,1,no,Sports,Suresh,9876543308,Palasa,Andhra Pradesh,532221,Shopify,Prepaid,Standard
+Laptop 15 inch,LAP-HP-15,36,25,3,2,1,yes,Electronics,Rahul Sharma,9876543210,Mumbai,Maharashtra,400001,Amazon,Prepaid,Express
+Wireless Mouse,MOU-BT-001,12,7,4,0.1,2,no,Electronics,Priya Patel,9876543211,Delhi,Delhi,110001,Flipkart,Prepaid,Standard
+Monitor 24 inch,MON-LG-24,55,35,8,4.5,1,yes,Electronics,Amit Kumar,9876543212,Bangalore,Karnataka,560001,Shopify,Prepaid,Standard
+Keyboard,KEY-LOG-01,45,15,3,0.8,1,no,Electronics,Sneha Reddy,9876543213,Chennai,Tamil Nadu,600001,Meesho,COD,Standard
+USB Cable,USB-C-001,15,10,2,0.05,5,no,Accessories,Vikram Singh,9876543214,Hyderabad,Telangana,500001,Amazon,Prepaid,Standard
+Headphones,HPH-SNY-01,20,18,10,0.3,1,yes,Electronics,Ananya Iyer,9876543215,Kolkata,West Bengal,700001,Flipkart,Prepaid,Express
+Power Bank,PWR-MI-20K,15,7,2,0.4,1,no,Accessories,Deepa Nair,9876543217,Jaipur,Rajasthan,302001,Shopify,COD,Standard
+Smartphone,PHN-SAM-A14,16,8,1,0.2,1,yes,Electronics,Meera Joshi,9876543219,Lucknow,Uttar Pradesh,226001,Amazon,Prepaid,Standard
+Bluetooth Speaker,SPK-JBL-FLP,18,8,8,0.6,1,no,Electronics,Suresh Menon,9876543220,Kochi,Kerala,682001,Meesho,Prepaid,Standard
+Laptop Charger,CHR-HP-65W,12,6,3,0.3,2,no,Accessories,Lakshmi P,9876543221,Coimbatore,Tamil Nadu,641001,Flipkart,Prepaid,Standard
