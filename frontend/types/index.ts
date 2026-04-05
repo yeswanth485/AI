@@ -83,6 +83,14 @@ export interface OptimizationResult {
     width_cm?: number;
     height_cm?: number;
   }[];
+  boxInfo?: {
+    name: string;
+    length_cm: number;
+    width_cm: number;
+    height_cm: number;
+    max_weight_kg: number;
+    supports_fragile: boolean;
+  };
 }
 
 export interface SavingsTrendPoint {

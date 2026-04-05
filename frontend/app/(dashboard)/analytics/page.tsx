@@ -14,7 +14,7 @@ import CostBreakdownChart from "@/components/charts/CostBreakdownChart";
 import EfficiencyDistributionChart from "@/components/charts/EfficiencyDistributionChart";
 import DailyOrderVolumeChart from "@/components/charts/DailyOrderVolumeChart";
 import { formatCurrency, formatPercentage } from "@/lib/utils";
-import { DollarSign, RefreshCw, Zap, Target, Layers } from "lucide-react";
+import { DollarSign, RefreshCw, Zap, Target, Layers, TrendingUp, Package, BarChart3 } from "lucide-react";
 
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
@@ -101,16 +101,16 @@ export default function AnalyticsPage() {
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-lg font-black text-foreground tracking-tight">Analytics</h2>
-          <p className="text-[12px] text-muted-dark mt-0.5">Comprehensive packaging performance metrics</p>
+          <h2 className="font-display text-xl font-black text-foreground tracking-tight">Analytics</h2>
+          <p className="text-[12px] text-muted-dark mt-1">Comprehensive packaging performance metrics</p>
         </div>
         <button
           onClick={fetchData}
           disabled={refreshing}
-          className="flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-[12px] font-semibold text-muted hover:text-foreground hover:border-border2 transition-all"
+          className="flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-[12px] font-semibold text-muted hover:text-foreground hover:border-border2 transition-all"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -118,36 +118,51 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Hero Metrics */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Card hover className="relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent to-accent-green" />
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-2">Total cost saved</div>
-          <div className="font-display text-[32px] font-black text-accent tracking-[-1.5px] leading-none">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card hover gradient className="group">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-teal" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
+              <DollarSign className="h-4 w-4 text-accent" />
+            </div>
+            <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Total cost saved</span>
+          </div>
+          <div className="font-display text-[36px] font-black text-accent tracking-[-1.5px] leading-none">
             {formatCurrency(analytics.total_savings)}
           </div>
-          <div className="text-[11px] text-muted mt-1">vs baseline packaging</div>
+          <div className="text-[11px] text-muted mt-1.5">vs baseline packaging</div>
         </Card>
-        <Card hover className="relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-green to-accent-purple" />
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-2">Avg space efficiency</div>
-          <div className="font-display text-[32px] font-black text-accent-green tracking-[-1.5px] leading-none">
+        <Card hover gradient className="group">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal to-purple" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-lg bg-teal/10 border border-teal/20 flex items-center justify-center">
+              <Target className="h-4 w-4 text-teal" />
+            </div>
+            <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Avg space efficiency</span>
+          </div>
+          <div className="font-display text-[36px] font-black text-teal tracking-[-1.5px] leading-none">
             {formatPercentage(analytics.avg_efficiency)}
           </div>
-          <div className="text-[11px] text-muted mt-1">space utilization per box</div>
+          <div className="text-[11px] text-muted mt-1.5">space utilization per box</div>
         </Card>
-        <Card hover className="relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-purple to-accent-orange" />
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-2">Orders processed</div>
-          <div className="font-display text-[32px] font-black text-accent-purple tracking-[-1.5px] leading-none">
+        <Card hover gradient className="group">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple to-blue" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-lg bg-purple/10 border border-purple/20 flex items-center justify-center">
+              <Package className="h-4 w-4 text-purple" />
+            </div>
+            <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Orders processed</span>
+          </div>
+          <div className="font-display text-[36px] font-black text-purple tracking-[-1.5px] leading-none">
             {analytics.total_orders}
           </div>
-          <div className="text-[11px] text-muted mt-1">total optimized</div>
+          <div className="text-[11px] text-muted mt-1.5">total optimized</div>
         </Card>
       </div>
 
       {/* Secondary Metrics */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card hover>
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-3.5 w-3.5 text-accent" />
             <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Avg savings/order</span>
@@ -157,17 +172,20 @@ export default function AnalyticsPage() {
           </div>
           <div className="text-[10px] text-muted mt-0.5">real rupees saved per order</div>
         </Card>
-        <Card>
+        <Card hover>
           <div className="flex items-center gap-2 mb-2">
-            <Zap className="h-3.5 w-3.5 text-accent-green" />
+            <Zap className="h-3.5 w-3.5 text-teal" />
             <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Engine status</span>
           </div>
-          <div className="font-display text-xl font-black text-accent-green tracking-tight">Ready</div>
+          <div className="font-display text-xl font-black text-teal tracking-tight flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-teal animate-pulse-custom" />
+            Ready
+          </div>
           <div className="text-[10px] text-muted mt-0.5">5-model ML + FFD</div>
         </Card>
-        <Card>
+        <Card hover>
           <div className="flex items-center gap-2 mb-2">
-            <Target className="h-3.5 w-3.5 text-accent-purple" />
+            <Target className="h-3.5 w-3.5 text-purple" />
             <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Avg waste</span>
           </div>
           <div className="font-display text-xl font-black text-foreground tracking-tight">
@@ -175,9 +193,9 @@ export default function AnalyticsPage() {
           </div>
           <div className="text-[10px] text-muted mt-0.5">per order</div>
         </Card>
-        <Card>
+        <Card hover>
           <div className="flex items-center gap-2 mb-2">
-            <Layers className="h-3.5 w-3.5 text-accent-orange" />
+            <Layers className="h-3.5 w-3.5 text-orange" />
             <span className="text-[10px] text-muted-dark uppercase tracking-wider font-bold">Total profit</span>
           </div>
           <div className="font-display text-xl font-black text-foreground tracking-tight">
@@ -188,60 +206,81 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Card>
-          <div className="mb-3">
-            <div className="text-[13px] font-semibold text-foreground">Savings trend</div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card hover>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-teal" />
+              <div className="text-[13px] font-semibold text-foreground">Savings trend</div>
+            </div>
             <div className="text-[10px] text-muted-dark mt-0.5">Cumulative savings per order</div>
           </div>
           <SavingsTrendChart data={analytics.savings_trend} />
         </Card>
-        <Card>
-          <div className="mb-3">
-            <div className="text-[13px] font-semibold text-foreground">Daily order volume</div>
+        <Card hover>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-purple" />
+              <div className="text-[13px] font-semibold text-foreground">Daily order volume</div>
+            </div>
             <div className="text-[10px] text-muted-dark mt-0.5">Last 14 days — live</div>
           </div>
           <DailyOrderVolumeChart data={uniqueDailyVolume} />
         </Card>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Card>
-          <div className="mb-3">
-            <div className="text-[13px] font-semibold text-foreground">Cost comparison</div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card hover>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-accent" />
+              <div className="text-[13px] font-semibold text-foreground">Cost comparison</div>
+            </div>
             <div className="text-[10px] text-muted-dark mt-0.5">Baseline vs optimized per order</div>
           </div>
           <CostComparisonChart data={analytics.cost_comparison} />
         </Card>
-        <Card>
-          <div className="mb-3">
-            <div className="text-[13px] font-semibold text-foreground">Cost breakdown</div>
+        <Card hover>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4 text-orange" />
+              <div className="text-[13px] font-semibold text-foreground">Cost breakdown</div>
+            </div>
             <div className="text-[10px] text-muted-dark mt-0.5">Shipping vs box material</div>
           </div>
           <CostBreakdownChart data={costBreakdown} />
         </Card>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Card>
-          <div className="mb-3">
-            <div className="text-[13px] font-semibold text-foreground">Box usage by type</div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card hover>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-purple" />
+              <div className="text-[13px] font-semibold text-foreground">Box usage by type</div>
+            </div>
             <div className="text-[10px] text-muted-dark mt-0.5">Which boxes are selected most</div>
           </div>
           <BoxUsageChart data={analytics.box_usage} />
         </Card>
-        <Card>
-          <div className="mb-3">
-            <div className="text-[13px] font-semibold text-foreground">Efficiency distribution</div>
+        <Card hover>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-teal" />
+              <div className="text-[13px] font-semibold text-foreground">Efficiency distribution</div>
+            </div>
             <div className="text-[10px] text-muted-dark mt-0.5">Space utilization histogram</div>
           </div>
           <EfficiencyDistributionChart data={efficiencyDistribution} />
         </Card>
       </div>
 
-      <Card>
-        <div className="mb-3">
-          <div className="text-[13px] font-semibold text-foreground">Efficiency trend</div>
+      <Card hover>
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-accent" />
+            <div className="text-[13px] font-semibold text-foreground">Efficiency trend</div>
+          </div>
           <div className="text-[10px] text-muted-dark mt-0.5">Per order — live</div>
         </div>
         <EfficiencyTrendChart data={efficiencyData} />

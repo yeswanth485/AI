@@ -5,21 +5,24 @@ import { useSearchParams } from "next/navigation";
 import { useOrders } from "@/hooks/useOrders";
 import { useOptimization } from "@/hooks/useOptimization";
 import { getOrderOptimizationStatus } from "@/services/orders.service";
-import OptimizationResultCard from "@/components/optimization/OptimizationResult";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { useAppContext } from "@/context/AppContext";
-import { Zap, RotateCcw, RefreshCw, CheckCircle, Loader2, Package, TrendingUp, Info, Rotate3D, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Zap, RotateCcw, RefreshCw, CheckCircle, Loader2, Package,
+  TrendingUp, Info, Rotate3D, ChevronDown, ChevronUp, DollarSign,
+  Box, ArrowRight, AlertTriangle, XCircle, Clock
+} from "lucide-react";
 import type { OptimizationResult } from "@/types";
 import dynamic from "next/dynamic";
 import api from "@/services/api";
 
 const ThreeDPackViewer = dynamic(
   () => import("@/components/optimization/ThreeDPackViewer"),
-  { ssr: false, loading: () => <div className="h-[400px] bg-[#111111] rounded-xl flex items-center justify-center text-gray-500 text-sm">Loading 3D viewer...</div> }
+  { ssr: false, loading: () => <div className="h-[400px] bg-[#0a0a14] rounded-xl flex items-center justify-center text-gray-500 text-sm border border-border">Loading 3D viewer...</div> }
 );
 
 interface BoxInfo {
@@ -53,14 +56,12 @@ export default function OptimizationPage() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingOrderIdsRef = useRef<Set<number>>(new Set());
 
-  // Fetch boxes for 3D viewer
   useEffect(() => {
     api.get("/inventory")
       .then(res => setBoxes(res.data))
       .catch(() => {});
   }, []);
 
-  // Poll for background optimization status (from upload)
   const pollCompletedOrders = useCallback(async () => {
     const pendingIds = Array.from(pollingOrderIdsRef.current);
     if (pendingIds.length === 0) return;
@@ -97,8 +98,6 @@ export default function OptimizationPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boxes]);
 
-  // Start polling when we have new order IDs from upload
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const orderIdsToTrack = orders
       .filter(o => (o.status === "optimized" || o.status === "no_savings") && !completedResults.has(o.id))
@@ -119,7 +118,6 @@ export default function OptimizationPage() {
     }
   }, [preselectedOrder]);
 
-  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
@@ -159,7 +157,6 @@ export default function OptimizationPage() {
   };
 
   const handleViewCompleted = async (orderId: number) => {
-    // Check if we already have it cached
     const cached = completedResults.get(orderId);
     if (cached) {
       setExpandedOrders(prev => {
@@ -210,12 +207,19 @@ export default function OptimizationPage() {
     );
   }
 
+  const filterOptions = [
+    { key: "pending", label: "Pending", count: pendingOrders.length, icon: Clock, color: "text-accent" },
+    { key: "completed", label: "Optimized", count: completedOrders.length, icon: CheckCircle, color: "text-teal" },
+    { key: "no_savings", label: "No Savings", count: noSavingsOrders.length, icon: AlertTriangle, color: "text-orange" },
+    { key: "failed", label: "Failed", count: failedOrders.length, icon: XCircle, color: "text-red" },
+  ];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-lg font-black text-foreground tracking-tight">Optimize</h2>
-          <p className="text-[12px] text-muted-dark mt-0.5">Rule-based FFD engine — select a box, see savings, view 3D pack</p>
+          <h2 className="font-display text-xl font-black text-foreground tracking-tight">Optimize</h2>
+          <p className="text-[12px] text-muted-dark mt-1">Rule-based FFD engine — select a box, see savings, view 3D pack</p>
         </div>
         <button
           onClick={async () => {
@@ -223,7 +227,7 @@ export default function OptimizationPage() {
             await refetch();
             setIsRefreshing(false);
           }}
-          className="flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-[12px] font-semibold text-muted hover:text-foreground hover:border-border2 transition-all"
+          className="flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-[12px] font-semibold text-muted hover:text-foreground hover:border-border2 transition-all"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -232,44 +236,49 @@ export default function OptimizationPage() {
 
       {/* Status Filter */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {[
-          { key: "pending", label: "Pending", count: pendingOrders.length },
-          { key: "completed", label: "Optimized", count: completedOrders.length },
-          { key: "no_savings", label: "No Savings", count: noSavingsOrders.length },
-          { key: "failed", label: "Failed", count: failedOrders.length },
-        ].map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setStatusFilter(f.key)}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold transition-all whitespace-nowrap ${
-              statusFilter === f.key
-                ? "bg-accent/10 text-accent border border-accent/20"
-                : "bg-surface border border-border text-muted hover:border-border2"
-            }`}
-          >
-            {f.label}
-            <span className="text-[10px] text-muted-dark">{f.count}</span>
-          </button>
-        ))}
+        {filterOptions.map((f) => {
+          const Icon = f.icon;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setStatusFilter(f.key)}
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold transition-all whitespace-nowrap ${
+                statusFilter === f.key
+                  ? "bg-accent/10 text-accent border border-accent/20 shadow-[0_0_20px_rgba(200,255,0,.05)]"
+                  : "bg-surface border border-border text-muted hover:border-border2"
+              }`}
+            >
+              <Icon className={`h-3.5 w-3.5 ${statusFilter === f.key ? f.color : "text-muted-dark"}`} />
+              {f.label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                statusFilter === f.key ? "bg-accent/10 text-accent/70" : "bg-ink2 text-muted-dark"
+              }`}>
+                {f.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Manual Optimization */}
       {statusFilter === "pending" && (
-        <Card>
+        <Card gradient glow>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-accent" />
-              <h3 className="text-[13px] font-semibold text-foreground">Run Optimization</h3>
+              <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
+                <Zap className="h-4 w-4 text-accent" />
+              </div>
+              <h3 className="text-[14px] font-semibold text-foreground">Run AI Packaging Engine</h3>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-bold text-muted-dark uppercase tracking-wider">
+              <label className="mb-2 block text-[11px] font-bold text-muted-dark uppercase tracking-wider">
                 Select Order
               </label>
               <select
                 value={selectedOrder}
                 onChange={(e) => setSelectedOrder(Number(e.target.value))}
-                className="w-full rounded-xl border border-border2 bg-surface2 px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(200,255,0,.08)] transition-all"
+                className="w-full rounded-xl border border-border2 bg-surface2 px-4 py-3 text-sm text-foreground outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(200,255,0,.08)] transition-all"
               >
                 <option value={0}>Choose a pending order...</option>
                 {pendingOrders.map((order) => (
@@ -281,14 +290,15 @@ export default function OptimizationPage() {
             </div>
 
             {pendingOrders.length === 0 && (
-              <div className="rounded-xl bg-border/50 px-4 py-3 text-[13px] text-muted">
+              <div className="rounded-xl bg-border/50 px-4 py-3 text-[13px] text-muted flex items-center gap-2">
+                <Info className="h-4 w-4" />
                 No pending orders. Upload orders or wait for background optimization to complete.
               </div>
             )}
 
-            <div className="flex items-center gap-2.5">
-              <Button onClick={handleOptimize} disabled={!selectedOrder} loading={optLoading}>
-                <Zap className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-3">
+              <Button onClick={handleOptimize} disabled={!selectedOrder} loading={optLoading} size="lg">
+                <Zap className="h-4 w-4" />
                 Run AI packaging engine
               </Button>
               {currentResult && (
@@ -304,16 +314,102 @@ export default function OptimizationPage() {
 
       {/* Current optimization result */}
       {currentResult && !optLoading && (
-        <OptimizationResultCard result={currentResult} />
+        <Card gradient className="border-accent/20">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="h-5 w-5 text-teal" />
+            <h3 className="text-[14px] font-semibold text-foreground">Optimization Complete</h3>
+            <Badge variant="success">Saved Rs.{currentResult.savings.toFixed(2)}</Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Card className="bg-accent/5 border-accent/10">
+              <div className="flex items-start gap-3">
+                <Box className="h-5 w-5 text-accent mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
+                  <p className="text-[18px] font-bold text-accent">{currentResult.recommended_box}</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-teal/5 border-teal/10">
+              <div className="flex items-start gap-3">
+                <DollarSign className="h-5 w-5 text-teal mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Cost Breakdown</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[12px] text-muted line-through">Rs.{currentResult.baseline_cost.toFixed(2)}</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted" />
+                    <span className="text-[18px] font-bold text-teal">Rs.{currentResult.optimized_cost.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {currentResult.decision_explanation && (
+            <Card className="bg-purple/5 border-purple/10 mb-4">
+              <div className="flex items-start gap-2">
+                <Info className="h-4 w-4 text-purple mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Why this box?</p>
+                  <p className="text-[12px] text-muted leading-relaxed">{currentResult.decision_explanation}</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {currentResult.packed_items && currentResult.packed_items.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Rotate3D className="h-4 w-4 text-accent" />
+                  <p className="text-[13px] font-semibold text-foreground">3D Packing Visualization</p>
+                </div>
+                <button
+                  onClick={() => toggle3D(selectedOrder)}
+                  className="flex items-center gap-1.5 rounded-full bg-accent/10 text-accent px-3 py-1.5 text-[11px] font-semibold hover:bg-accent/20 transition-all"
+                >
+                  <Rotate3D className="h-3 w-3" />
+                  {show3DFor === selectedOrder ? "Hide 3D" : "Show 3D"}
+                </button>
+              </div>
+              {show3DFor === selectedOrder && (
+                <ThreeDPackViewer
+                  box={{
+                    name: currentResult.recommended_box,
+                    length_cm: currentResult.boxInfo?.length_cm || 45,
+                    width_cm: currentResult.boxInfo?.width_cm || 35,
+                    height_cm: currentResult.boxInfo?.height_cm || 25,
+                  }}
+                  items={currentResult.packed_items.map(item => ({
+                    product_name: item.product_name,
+                    position_x: item.position_x,
+                    position_y: item.position_y,
+                    position_z: item.position_z,
+                    length_cm: item.length_cm || 10,
+                    width_cm: item.width_cm || 10,
+                    height_cm: item.height_cm || 10,
+                    is_fragile: item.is_fragile,
+                    quantity: item.quantity,
+                  }))}
+                />
+              )}
+            </div>
+          )}
+        </Card>
       )}
 
       {/* Optimization loading */}
       {optLoading && (
-        <Card>
-          <div className="flex flex-col items-center justify-center py-12">
-            <Spinner size="lg" />
-            <p className="mt-4 text-sm text-muted">Calculating optimal packaging...</p>
-            <p className="text-[11px] text-muted-dark mt-1">Evaluating all boxes for best fit</p>
+        <Card gradient glow>
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-4 border-accent/20 border-t-accent animate-spin" />
+              <Zap className="h-6 w-6 text-accent absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <p className="mt-5 text-sm text-muted font-medium">Calculating optimal packaging...</p>
+            <p className="text-[11px] text-muted-dark mt-1.5">Evaluating all boxes with FFD engine for best fit</p>
           </div>
         </Card>
       )}
@@ -334,15 +430,15 @@ export default function OptimizationPage() {
 
       {/* Background optimization tracking */}
       {pollingOrderIdsRef.current.size > 0 && (
-        <Card>
+        <Card gradient>
           <div className="flex items-center gap-2 mb-3">
             <Loader2 className="h-4 w-4 text-accent animate-spin" />
             <span className="text-[13px] font-semibold text-foreground">Background Optimization in Progress</span>
             <Badge variant="warning">{pollingOrderIdsRef.current.size} remaining</Badge>
           </div>
-          <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-border rounded-full h-2.5 overflow-hidden">
             <div
-              className="bg-accent h-full rounded-full transition-all duration-500"
+              className="bg-accent h-full rounded-full transition-all duration-500 progress-glow"
               style={{ width: `${((completedResults.size) / (completedResults.size + pollingOrderIdsRef.current.size)) * 100}%` }}
             />
           </div>
@@ -358,8 +454,8 @@ export default function OptimizationPage() {
             const show3D = show3DFor === order.id;
 
             return (
-              <Card key={order.id} hover>
-                {/* Order Header - always visible */}
+              <Card key={order.id} hover className="group">
+                {/* Order Header */}
                 <button
                   onClick={() => {
                     if (!optResult) handleViewCompleted(order.id);
@@ -369,11 +465,17 @@ export default function OptimizationPage() {
                 >
                   <div className="flex items-center gap-3">
                     {optResult?.status === "optimized" ? (
-                      <CheckCircle className="h-4 w-4 text-accent-green flex-shrink-0" />
+                      <div className="w-8 h-8 rounded-full bg-teal/10 border border-teal/20 flex items-center justify-center">
+                        <CheckCircle className="h-4 w-4 text-teal" />
+                      </div>
                     ) : optResult?.status === "no_savings" ? (
-                      <Info className="h-4 w-4 text-accent-orange flex-shrink-0" />
+                      <div className="w-8 h-8 rounded-full bg-orange/10 border border-orange/20 flex items-center justify-center">
+                        <AlertTriangle className="h-4 w-4 text-orange" />
+                      </div>
                     ) : (
-                      <span className="h-4 w-4 rounded-full bg-accent-red/20 flex-shrink-0" />
+                      <div className="w-8 h-8 rounded-full bg-red/10 border border-red/20 flex items-center justify-center">
+                        <XCircle className="h-4 w-4 text-red" />
+                      </div>
                     )}
                     <div className="text-left">
                       <div className="flex items-center gap-2">
@@ -401,9 +503,9 @@ export default function OptimizationPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {optResult && (
-                      <div className="text-right">
+                      <div className="text-right hidden sm:block">
                         <div className="text-[11px] text-muted">Box: <span className="text-foreground font-medium">{optResult.recommended_box}</span></div>
-                        <div className="text-[11px] text-muted">Efficiency: <span className="text-accent-green font-medium">{(optResult.efficiency_score * 100).toFixed(0)}%</span></div>
+                        <div className="text-[11px] text-muted">Efficiency: <span className="text-teal font-medium">{(optResult.efficiency_score * 100).toFixed(0)}%</span></div>
                       </div>
                     )}
                     {isExpanded ? <ChevronUp className="h-4 w-4 text-muted" /> : <ChevronDown className="h-4 w-4 text-muted" />}
@@ -412,15 +514,15 @@ export default function OptimizationPage() {
 
                 {/* Expanded Details */}
                 {isExpanded && optResult && (
-                  <div className="mt-4 pt-4 border-t border-border/50 space-y-4">
+                  <div className="mt-5 pt-5 border-t border-border/50 space-y-4 animate-fadeInScale">
                     {/* Box Recommendation & Why */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Card className="border-l-[3px] border-l-accent/30">
-                        <div className="flex items-start gap-2">
-                          <Package className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                      <Card className="border-l-[3px] border-l-accent/30 bg-accent/5">
+                        <div className="flex items-start gap-3">
+                          <Box className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-[12px] font-semibold text-foreground mb-1">Recommended Box</p>
-                            <p className="text-[14px] font-bold text-accent">{optResult.recommended_box}</p>
+                            <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
+                            <p className="text-[16px] font-bold text-accent">{optResult.recommended_box}</p>
                             {optResult.boxInfo && (
                               <p className="text-[11px] text-muted mt-1">
                                 {optResult.boxInfo.length_cm} × {optResult.boxInfo.width_cm} × {optResult.boxInfo.height_cm} cm · Max {optResult.boxInfo.max_weight_kg}kg
@@ -431,17 +533,18 @@ export default function OptimizationPage() {
                         </div>
                       </Card>
 
-                      <Card className="border-l-[3px] border-l-accent-green/30">
-                        <div className="flex items-start gap-2">
-                          <TrendingUp className="h-4 w-4 text-accent-green mt-0.5 flex-shrink-0" />
+                      <Card className="border-l-[3px] border-l-teal/30 bg-teal/5">
+                        <div className="flex items-start gap-3">
+                          <TrendingUp className="h-5 w-5 text-teal mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-[12px] font-semibold text-foreground mb-1">Cost Breakdown</p>
+                            <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Cost Breakdown</p>
                             <div className="flex items-baseline gap-2">
-                              <span className="text-[11px] text-muted line-through">Rs.{optResult.baseline_cost.toFixed(2)}</span>
-                              <span className="text-[14px] font-bold text-accent-green">Rs.{optResult.optimized_cost.toFixed(2)}</span>
+                              <span className="text-[12px] text-muted line-through">Rs.{optResult.baseline_cost.toFixed(2)}</span>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted" />
+                              <span className="text-[16px] font-bold text-teal">Rs.{optResult.optimized_cost.toFixed(2)}</span>
                             </div>
                             {optResult.savings > 0 && (
-                              <p className="text-[11px] text-accent-green mt-0.5">
+                              <p className="text-[11px] text-teal mt-1">
                                 Saving Rs.{optResult.savings.toFixed(2)} ({((optResult.savings / optResult.baseline_cost) * 100).toFixed(1)}%)
                               </p>
                             )}
@@ -451,24 +554,29 @@ export default function OptimizationPage() {
                     </div>
 
                     {/* Why this box */}
-                    <Card className="bg-accent/5 border-accent/10">
-                      <div className="flex items-start gap-2">
-                        <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-[12px] font-semibold text-foreground mb-1">Why this box?</p>
-                          <p className="text-[12px] text-muted leading-relaxed">{optResult.decision_explanation}</p>
+                    {optResult.decision_explanation && (
+                      <Card className="bg-purple/5 border-purple/10">
+                        <div className="flex items-start gap-2">
+                          <Info className="h-4 w-4 text-purple mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Why this box?</p>
+                            <p className="text-[12px] text-muted leading-relaxed">{optResult.decision_explanation}</p>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
+                      </Card>
+                    )}
 
                     {/* Packing Order */}
                     {optResult.item_order && optResult.item_order.length > 0 && (
                       <Card>
-                        <p className="text-[12px] font-semibold text-foreground mb-3">Packing Order (bottom to top)</p>
-                        <div className="space-y-1.5">
+                        <p className="text-[12px] font-semibold text-foreground mb-3 flex items-center gap-2">
+                          <Package className="h-4 w-4 text-accent" />
+                          Packing Order (bottom to top)
+                        </p>
+                        <div className="space-y-2">
                           {optResult.item_order.map((item, i) => (
-                            <div key={i} className="flex items-center gap-2.5 py-1.5">
-                              <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center text-[10px] font-bold text-accent flex-shrink-0">
+                            <div key={i} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-ink2/50 border border-border/50">
+                              <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-[10px] font-bold text-accent flex-shrink-0">
                                 {i + 1}
                               </div>
                               <div className="flex-1">
@@ -487,10 +595,10 @@ export default function OptimizationPage() {
                     {/* 3D Viewer */}
                     {optResult.packed_items && optResult.packed_items.length > 0 && (
                       <Card>
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Rotate3D className="h-4 w-4 text-accent" />
-                            <p className="text-[12px] font-semibold text-foreground">3D Packing Visualization</p>
+                            <p className="text-[13px] font-semibold text-foreground">3D Packing Visualization</p>
                           </div>
                           <button
                             onClick={() => toggle3D(order.id)}
@@ -526,10 +634,10 @@ export default function OptimizationPage() {
                   </div>
                 )}
 
-                {/* Loading state for completed orders without cached result */}
+                {/* Loading state */}
                 {!optResult && order.status !== "pending" && (
-                  <div className="mt-3 pt-3 border-t border-border/50 flex items-center gap-2">
-                    <Loader2 className="h-3 w-3 text-accent animate-spin" />
+                  <div className="mt-4 pt-4 border-t border-border/50 flex items-center gap-2">
+                    <Loader2 className="h-3.5 w-3.5 text-accent animate-spin" />
                     <span className="text-[11px] text-muted">Loading optimization details...</span>
                   </div>
                 )}
@@ -539,15 +647,18 @@ export default function OptimizationPage() {
         </div>
       )}
 
-      {/* Pending orders list when no optimization running */}
+      {/* Pending orders list */}
       {statusFilter === "pending" && pendingOrders.length > 0 && !currentResult && !optLoading && (
         <Card>
-          <div className="text-[13px] font-semibold text-foreground mb-3">Pending Orders</div>
+          <div className="text-[13px] font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-accent" />
+            Pending Orders
+          </div>
           <div className="space-y-2">
             {pendingOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[12px] text-accent">#{order.id}</span>
+              <div key={order.id} className="flex items-center justify-between py-3 px-3 rounded-xl bg-ink2/50 border border-border/50 hover:border-border transition-all">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[12px] text-accent font-semibold">#{order.id}</span>
                   <span className="text-[12px] text-muted">{order.shipping_zone}</span>
                   {order.channel && <Badge variant="purple">{order.channel}</Badge>}
                   {order.customer_name && (
@@ -557,9 +668,8 @@ export default function OptimizationPage() {
                 <button
                   onClick={() => {
                     setSelectedOrder(order.id);
-                    setStatusFilter("pending");
                   }}
-                  className="text-[11px] text-accent hover:underline font-semibold"
+                  className="text-[11px] text-accent hover:bg-accent/10 px-3 py-1.5 rounded-full transition-all font-semibold"
                 >
                   Select →
                 </button>

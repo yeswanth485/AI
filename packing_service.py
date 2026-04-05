@@ -57,41 +57,83 @@ def sort_items_ffd(db: Session, items: List[OrderItem]) -> List[OrderItem]:
 def assign_spatial_positions(
     db: Session, items: List[OrderItem], box: BoxInventory
 ) -> List[PackedItem]:
-    """Assign real spatial positions using bottom-up layer stacking."""
+    """Assign real spatial positions using shelf-based 3D bin packing.
+    Items are placed along X axis first, then Z, then Y (layers).
+    """
     packed_items = []
-    cursor_y = 0.0
-
     sorted_items = sort_items_ffd(db, items)
+
+    cursor_x = 0.0
+    cursor_y = 0.0
+    cursor_z = 0.0
+    row_max_height = 0.0
+    layer_max_z = 0.0
+
+    box_length = float(box.length_cm)
+    box_width = float(box.width_cm)
+    box_height = float(box.height_cm)
 
     for item in sorted_items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if product is None:
             continue
 
-        item_height = product.height_cm
+        item_length = float(product.length_cm)
+        item_width = float(product.width_cm)
+        item_height = float(product.height_cm)
+        qty = item.quantity
 
-        if cursor_y == 0:
+        for q in range(qty):
+            if cursor_x + item_length > box_length:
+                cursor_x = 0.0
+                cursor_z += row_max_height
+                row_max_height = 0.0
+
+            if cursor_z + item_width > box_width:
+                cursor_x = 0.0
+                cursor_z = 0.0
+                cursor_y += layer_max_z
+                layer_max_z = 0.0
+
+            current_height = cursor_y + item_height
+            if current_height > box_height:
+                break
+
             layer = "bottom"
-        elif product.is_fragile:
-            layer = "top"
-        else:
-            layer = "middle"
+            if cursor_y > 0:
+                if product.is_fragile:
+                    layer = "top"
+                else:
+                    layer = "middle"
 
-        packed_item = PackedItem(
-            product_id=item.product_id,
-            product_name=product.name,
-            quantity=item.quantity,
-            is_fragile=product.is_fragile,
-            position_x=0.0,
-            position_y=cursor_y,
-            position_z=0.0,
-            layer=layer,
-            length_cm=product.length_cm,
-            width_cm=product.width_cm,
-            height_cm=product.height_cm,
-        )
-        packed_items.append(packed_item)
-        cursor_y += item_height * item.quantity
+            packed_item = PackedItem(
+                product_id=item.product_id,
+                product_name=product.name,
+                quantity=1,
+                is_fragile=product.is_fragile,
+                position_x=round(cursor_x, 2),
+                position_y=round(cursor_y, 2),
+                position_z=round(cursor_z, 2),
+                layer=layer,
+                length_cm=item_length,
+                width_cm=item_width,
+                height_cm=item_height,
+            )
+            packed_items.append(packed_item)
+
+            cursor_x += item_length
+            row_max_height = max(row_max_height, item_width)
+            layer_max_z = max(layer_max_z, item_width)
+
+        cursor_x = 0.0
+        cursor_z += row_max_height
+        row_max_height = 0.0
+
+        if cursor_z >= box_width:
+            cursor_x = 0.0
+            cursor_z = 0.0
+            cursor_y += layer_max_z
+            layer_max_z = 0.0
 
     return packed_items
 

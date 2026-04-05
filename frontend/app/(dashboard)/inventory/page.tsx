@@ -9,7 +9,7 @@ import Modal from "@/components/ui/Modal";
 import AddBoxForm from "@/components/forms/AddBoxForm";
 import Card from "@/components/ui/Card";
 import { useAppContext } from "@/context/AppContext";
-import { Plus, Package, Warehouse, AlertTriangle, Save, X } from "lucide-react";
+import { Plus, Package, Warehouse, AlertTriangle, Save, X, Ruler, Weight, ShieldCheck, Box } from "lucide-react";
 
 export default function InventoryPage() {
   const { inventory, loading, error, refetch, addBox, updateQuantity } = useInventory();
@@ -84,13 +84,14 @@ export default function InventoryPage() {
   const totalBoxes = inventory.length;
   const totalUnits = inventory.reduce((sum, b) => sum + b.quantity_available, 0);
   const lowStock = inventory.filter((b) => b.quantity_available < 30).length;
+  const fragileBoxes = inventory.filter((b) => b.supports_fragile).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-lg font-black text-foreground tracking-tight">Box Inventory</h2>
-          <p className="text-[12px] text-muted-dark mt-0.5">Manage your packaging materials</p>
+          <h2 className="font-display text-xl font-black text-foreground tracking-tight">Box Inventory</h2>
+          <p className="text-[12px] text-muted-dark mt-1">Manage your packaging materials</p>
         </div>
         <Button onClick={() => setShowModal(true)}>
           <Plus className="h-3.5 w-3.5" />
@@ -99,11 +100,12 @@ export default function InventoryPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card hover>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg border border-border flex items-center justify-center">
-              <Package className="h-5 w-5 text-accent" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card hover gradient className="group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-accent/5 rounded-full blur-2xl -translate-y-4 translate-x-4" />
+          <div className="flex items-center gap-3 relative">
+            <div className="w-11 h-11 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+              <Box className="h-5 w-5 text-accent" />
             </div>
             <div>
               <div className="font-display text-2xl font-black text-foreground">{totalBoxes}</div>
@@ -111,25 +113,39 @@ export default function InventoryPage() {
             </div>
           </div>
         </Card>
-        <Card hover>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg border border-border flex items-center justify-center">
-              <Warehouse className="h-5 w-5 text-accent-green" />
+        <Card hover gradient className="group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-teal/5 rounded-full blur-2xl -translate-y-4 translate-x-4" />
+          <div className="flex items-center gap-3 relative">
+            <div className="w-11 h-11 rounded-xl bg-teal/10 border border-teal/20 flex items-center justify-center">
+              <Warehouse className="h-5 w-5 text-teal" />
             </div>
             <div>
-              <div className="font-display text-2xl font-black text-foreground">{totalUnits}</div>
+              <div className="font-display text-2xl font-black text-foreground">{totalUnits.toLocaleString()}</div>
               <div className="text-[10px] text-muted-dark uppercase tracking-wider">Total units</div>
             </div>
           </div>
         </Card>
-        <Card hover>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg border border-border flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-accent-red" />
+        <Card hover gradient className="group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-red/5 rounded-full blur-2xl -translate-y-4 translate-x-4" />
+          <div className="flex items-center gap-3 relative">
+            <div className="w-11 h-11 rounded-xl bg-red/10 border border-red/20 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-red" />
             </div>
             <div>
-              <div className="font-display text-2xl font-black text-accent-red">{lowStock}</div>
+              <div className="font-display text-2xl font-black text-red">{lowStock}</div>
               <div className="text-[10px] text-muted-dark uppercase tracking-wider">Low stock (&lt;30)</div>
+            </div>
+          </div>
+        </Card>
+        <Card hover gradient className="group">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-purple/5 rounded-full blur-2xl -translate-y-4 translate-x-4" />
+          <div className="flex items-center gap-3 relative">
+            <div className="w-11 h-11 rounded-xl bg-purple/10 border border-purple/20 flex items-center justify-center">
+              <ShieldCheck className="h-5 w-5 text-purple" />
+            </div>
+            <div>
+              <div className="font-display text-2xl font-black text-purple">{fragileBoxes}</div>
+              <div className="text-[10px] text-muted-dark uppercase tracking-wider">Fragile-safe</div>
             </div>
           </div>
         </Card>
@@ -148,84 +164,126 @@ export default function InventoryPage() {
           }
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-4">
-          {inventory.map((box) => (
-            <Card key={box.id} hover className="relative">
-              {box.quantity_available < 30 && (
-                <div className="absolute top-3 right-3 text-[8px] font-bold text-accent-red bg-accent-red/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                  LOW
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+          {inventory.map((box) => {
+            const isLow = box.quantity_available < 30;
+            const volume = (box.length_cm * box.width_cm * box.height_cm).toFixed(0);
+
+            return (
+              <Card key={box.id} hover className="group relative overflow-hidden">
+                {isLow && (
+                  <div className="absolute top-3 right-3">
+                    <span className="flex items-center gap-1 text-[8px] font-bold text-red bg-red/10 px-2 py-0.5 rounded-full uppercase tracking-wider border border-red/20">
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      LOW
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                    isLow ? "bg-red/10 border border-red/20" : "bg-accent/10 border border-accent/20"
+                  }`}>
+                    <Package className={`h-5 w-5 ${isLow ? "text-red" : "text-accent"}`} />
+                  </div>
+                  <div>
+                    <div className="font-display text-lg font-black text-foreground group-hover:text-accent transition-colors">{box.name}</div>
+                    <div className="text-[10px] text-muted-dark">{volume} cm³ volume</div>
+                  </div>
                 </div>
-              )}
-              <div className="font-display text-lg font-black text-accent mb-1">{box.name}</div>
-              <div className="text-[11px] text-muted-dark mb-3">
-                {box.length_cm} × {box.width_cm} × {box.height_cm} cm · Max {box.max_weight_kg}kg
-              </div>
-              <div className="flex items-end justify-between">
-                <div>
-                  {editingBoxId === box.id ? (
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        value={editQty}
-                        onChange={(e) => setEditQty(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
+
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="bg-ink2 rounded-lg p-2.5 border border-border/50">
+                    <div className="flex items-center gap-1.5 text-[9px] text-muted-dark uppercase tracking-wider mb-1">
+                      <Ruler className="h-3 w-3" />
+                      Dimensions
+                    </div>
+                    <div className="text-[11px] text-foreground font-medium">
+                      {box.length_cm}×{box.width_cm}×{box.height_cm}cm
+                    </div>
+                  </div>
+                  <div className="bg-ink2 rounded-lg p-2.5 border border-border/50">
+                    <div className="flex items-center gap-1.5 text-[9px] text-muted-dark uppercase tracking-wider mb-1">
+                      <Weight className="h-3 w-3" />
+                      Max Weight
+                    </div>
+                    <div className="text-[11px] text-foreground font-medium">
+                      {box.max_weight_kg}kg
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-end justify-between pt-3 border-t border-border/50">
+                  <div>
+                    {editingBoxId === box.id ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={editQty}
+                          onChange={(e) => setEditQty(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              const val = parseInt(editQty, 10);
+                              if (!isNaN(val) && val >= 0) {
+                                handleUpdateQty(box.id, val);
+                              }
+                            }
+                            if (e.key === "Escape") cancelEditing();
+                          }}
+                          className="w-20 px-2 py-1 text-sm bg-ink2 border border-border rounded-lg text-foreground focus:outline-none focus:border-accent transition-colors"
+                          autoFocus
+                          min="0"
+                        />
+                        <button
+                          onClick={() => {
                             const val = parseInt(editQty, 10);
                             if (!isNaN(val) && val >= 0) {
                               handleUpdateQty(box.id, val);
                             }
-                          }
-                          if (e.key === "Escape") cancelEditing();
-                        }}
-                        className="w-20 px-2 py-1 text-sm bg-[#1a1a1a] border border-border rounded text-foreground focus:outline-none focus:border-accent"
-                        autoFocus
-                        min="0"
-                      />
-                      <button
-                        onClick={() => {
-                          const val = parseInt(editQty, 10);
-                          if (!isNaN(val) && val >= 0) {
-                            handleUpdateQty(box.id, val);
-                          }
-                        }}
-                        className="p-1 text-accent-green hover:text-accent-green/80 transition-colors"
-                        title="Save"
-                      >
-                        <Save className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={cancelEditing}
-                        className="p-1 text-muted hover:text-foreground transition-colors"
-                        title="Cancel"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className={`font-display text-2xl font-black ${
-                        box.quantity_available > 30 ? "text-foreground" : "text-accent-red"
-                      }`}>
-                        {box.quantity_available}
+                          }}
+                          className="p-1.5 text-teal hover:bg-teal/10 rounded-lg transition-all"
+                          title="Save"
+                        >
+                          <Save className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="p-1.5 text-muted hover:bg-white/[.04] rounded-lg transition-all"
+                          title="Cancel"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
-                      <div className="text-[9px] text-muted-dark uppercase tracking-wider">In stock</div>
-                    </>
+                    ) : (
+                      <>
+                        <div className={`font-display text-2xl font-black ${
+                          isLow ? "text-red" : "text-foreground"
+                        }`}>
+                          {box.quantity_available}
+                        </div>
+                        <div className="text-[9px] text-muted-dark uppercase tracking-wider">In stock</div>
+                      </>
+                    )}
+                  </div>
+                  {editingBoxId !== box.id && (
+                    <button
+                      onClick={() => startEditing(box.id, box.quantity_available)}
+                      className="text-[11px] text-accent hover:bg-accent/10 px-2.5 py-1 rounded-full transition-all font-semibold"
+                    >
+                      Edit qty
+                    </button>
                   )}
                 </div>
-                {editingBoxId !== box.id && (
-                  <button
-                    onClick={() => startEditing(box.id, box.quantity_available)}
-                    className="text-[11px] text-accent hover:underline font-semibold"
-                  >
-                    Edit qty
-                  </button>
+
+                {box.supports_fragile && (
+                  <div className="mt-3 flex items-center gap-1.5 text-[10px] text-teal font-semibold bg-teal/5 px-2.5 py-1.5 rounded-lg border border-teal/10">
+                    <ShieldCheck className="h-3 w-3" />
+                    Fragile-safe packaging
+                  </div>
                 )}
-              </div>
-              {box.supports_fragile && (
-                <div className="mt-2 text-[10px] text-accent-green font-semibold">✓ Fragile safe</div>
-              )}
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
 

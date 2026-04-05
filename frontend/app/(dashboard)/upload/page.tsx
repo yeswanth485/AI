@@ -6,12 +6,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { uploadOrders } from "@/services/upload.service";
 import { getOrderOptimizationStatus } from "@/services/orders.service";
 import { UploadResult, OptimizationResult } from "@/types";
-import { Upload, AlertCircle, CheckCircle, XCircle, FileText, RefreshCw, Zap, Loader2 } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle, XCircle, FileText, RefreshCw, Zap, Loader2, ArrowRight, Package, TrendingUp } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import OptimizationResultCard from "@/components/optimization/OptimizationResult";
 import { useAppContext } from "@/context/AppContext";
+import dynamic from "next/dynamic";
+import api from "@/services/api";
+
+const ThreeDPackViewer = dynamic(
+  () => import("@/components/optimization/ThreeDPackViewer"),
+  { ssr: false, loading: () => <div className="h-[300px] bg-[#0a0a14] rounded-xl flex items-center justify-center text-gray-500 text-sm border border-border">Loading 3D viewer...</div> }
+);
 
 const platforms = [
   { name: "PackAI Standard", ico: "✅", fields: "product_name, sku, length, width, height, weight, quantity, fragility, category, customer_name, phone, city, state, pincode, channel, payment_type, priority" },
@@ -44,6 +50,13 @@ const requiredFields = [
   { name: "priority", aliases: "express, service_level, delivery_speed", req: false },
 ];
 
+interface BoxInfo {
+  name: string;
+  length_cm: number;
+  width_cm: number;
+  height_cm: number;
+}
+
 export default function UploadPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -61,6 +74,15 @@ export default function UploadPage() {
   const [optimizingOrderIds, setOptimizingOrderIds] = useState<number[]>([]);
   const [optimizationResults, setOptimizationResults] = useState<Map<number, OptimizationResult>>(new Map());
   const [allOptimized, setAllOptimized] = useState(false);
+  const [expandedUploadOrders, setExpandedUploadOrders] = useState<Set<number>>(new Set());
+  const [show3DFor, setShow3DFor] = useState<number | null>(null);
+  const [boxes, setBoxes] = useState<BoxInfo[]>([]);
+
+  useEffect(() => {
+    api.get("/inventory")
+      .then(res => setBoxes(res.data))
+      .catch(() => {});
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -120,9 +142,10 @@ export default function UploadPage() {
     setOptimizingOrderIds([]);
     setOptimizationResults(new Map());
     setAllOptimized(false);
+    setExpandedUploadOrders(new Set());
+    setShow3DFor(null);
   };
 
-  // Poll for optimization status of uploaded orders
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultsRef = useRef<Map<number, OptimizationResult>>(new Map());
   const orderIdsRef = useRef<number[]>([]);
@@ -190,6 +213,7 @@ export default function UploadPage() {
     );
     if (newlyCreated.length > 0) {
       orderIdsRef.current = [...orderIdsRef.current, ...newlyCreated];
+      setOptimizingOrderIds(orderIdsRef.current);
     }
 
     if (pollingRef.current) {
@@ -212,11 +236,24 @@ export default function UploadPage() {
     { n: 4, label: "Results" },
   ];
 
+  const toggleExpandUploadOrder = (orderId: number) => {
+    setExpandedUploadOrders(prev => {
+      const next = new Set(prev);
+      if (next.has(orderId)) next.delete(orderId);
+      else next.add(orderId);
+      return next;
+    });
+  };
+
+  const toggle3DUpload = (orderId: number) => {
+    setShow3DFor(prev => prev === orderId ? null : orderId);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <h2 className="font-display text-lg font-black text-foreground tracking-tight">Upload Orders</h2>
-        <p className="text-[12px] text-muted-dark mt-0.5">Bulk import orders from any Indian ecommerce platform</p>
+        <h2 className="font-display text-xl font-black text-foreground tracking-tight">Upload Orders</h2>
+        <p className="text-[12px] text-muted-dark mt-1">Bulk import orders from any Indian ecommerce platform</p>
       </div>
 
       {/* Step Flow */}
@@ -224,25 +261,25 @@ export default function UploadPage() {
         {steps.map((s, i) => (
           <div key={s.n} className="flex items-center">
             <div
-              className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all whitespace-nowrap ${
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold transition-all whitespace-nowrap ${
                 step > s.n
-                  ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                  ? "bg-teal/10 text-teal border border-teal/20"
                   : step === s.n
-                  ? "bg-accent/10 text-accent border border-accent/25"
+                  ? "bg-accent/10 text-accent border border-accent/25 shadow-[0_0_20px_rgba(200,255,0,.05)]"
                   : "border border-border text-muted-dark"
               }`}
             >
               {step > s.n ? <CheckCircle className="h-3.5 w-3.5" /> : s.n}
               {s.label}
             </div>
-            {i < steps.length - 1 && <div className="flex-1 h-px bg-border mx-2 min-w-[12px]" />}
+            {i < steps.length - 1 && <div className="flex-1 h-px bg-border mx-3 min-w-[16px]" />}
           </div>
         ))}
       </div>
 
       {/* CSV Format Guide */}
       <Card>
-        <div className="mb-3">
+        <div className="mb-4">
           <div className="text-[13px] font-semibold text-foreground flex items-center gap-2">
             <FileText className="h-4 w-4 text-accent" />
             Supported CSV formats — Indian ecommerce platforms
@@ -251,7 +288,7 @@ export default function UploadPage() {
         </div>
 
         {/* Platform Tabs */}
-        <div className="flex gap-1.5 overflow-x-auto mb-3 pb-1">
+        <div className="flex gap-1.5 overflow-x-auto mb-4 pb-1">
           {platforms.map((p, i) => (
             <button
               key={p.name}
@@ -267,15 +304,15 @@ export default function UploadPage() {
           ))}
         </div>
 
-        <div className="bg-ink2 border border-border rounded-xl p-3 mb-3">
+        <div className="bg-ink2 border border-border rounded-xl p-4 mb-4">
           <div className="text-[11px] font-semibold text-foreground mb-1.5">{platforms[activeTab].ico} {platforms[activeTab].name}</div>
           <div className="text-[11px] text-muted leading-relaxed">{platforms[activeTab].fields}</div>
         </div>
 
         {/* Required Fields */}
-        <div className="bg-accent/5 border border-accent/10 rounded-xl p-3">
-          <div className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">Required fields (minimum to optimize)</div>
-          <div className="space-y-1.5">
+        <div className="bg-accent/5 border border-accent/10 rounded-xl p-4">
+          <div className="text-[10px] font-bold text-accent uppercase tracking-wider mb-3">Required fields (minimum to optimize)</div>
+          <div className="space-y-2">
             {requiredFields.map((f) => (
               <div key={f.name} className="flex items-center gap-2 text-[10px]">
                 <span className={`px-2 py-0.5 rounded-full font-semibold min-w-[100px] ${
@@ -289,19 +326,16 @@ export default function UploadPage() {
               </div>
             ))}
           </div>
-          <div className="text-[10px] text-muted-dark mt-2 pt-2 border-t border-border/50">
-            Auto-detects columns from Shiprocket, Shopify, Amazon, Flipkart, Meesho, Delhivery, Unicommerce exports
-          </div>
         </div>
       </Card>
 
       {/* Upload Area */}
-      <Card>
+      <Card gradient glow>
         <div
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
-          className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer relative ${
+          className={`border-2 border-dashed rounded-2xl p-14 text-center transition-all cursor-pointer relative ${
             file
               ? "border-accent bg-accent/5"
               : dragOver
@@ -315,32 +349,39 @@ export default function UploadPage() {
             onChange={handleFileChange}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
-          <Upload className="w-10 h-10 mx-auto text-muted mb-3" />
+          <div className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-4 transition-all ${
+            file ? "bg-accent/10 border border-accent/20" : "bg-surface2 border border-border"
+          }`}>
+            <Upload className={`w-6 h-6 ${file ? "text-accent" : "text-muted"}`} />
+          </div>
           {file ? (
             <div>
-              <p className="text-foreground font-semibold text-sm">{file.name}</p>
-              <p className="text-muted text-xs mt-1">{(file.size / 1024).toFixed(1)} KB</p>
+              <p className="text-foreground font-semibold text-base">{file.name}</p>
+              <p className="text-muted text-sm mt-1">{(file.size / 1024).toFixed(1)} KB</p>
             </div>
           ) : (
             <div>
-              <p className="text-foreground font-semibold text-sm">Drop your order CSV here</p>
-              <p className="text-muted text-xs mt-1.5">Supports Shiprocket · Delhivery · Meesho · Amazon · Flipkart · Unicommerce exports</p>
-              <p className="text-muted-dark text-[10px] mt-1">UTF-8 encoding · Max 10MB · Auto-detects column format</p>
+              <p className="text-foreground font-semibold text-base">Drop your order CSV here</p>
+              <p className="text-muted text-sm mt-2">Supports Shiprocket · Delhivery · Meesho · Amazon · Flipkart · Unicommerce exports</p>
+              <p className="text-muted-dark text-[10px] mt-2">UTF-8 encoding · Max 10MB · Auto-detects column format</p>
             </div>
           )}
         </div>
 
         {/* Settings */}
         {file && (
-          <div className="mt-4 space-y-3">
-            <div className="text-[11px] font-bold text-muted-dark uppercase tracking-wider">⚙️ Optimization settings</div>
+          <div className="mt-5 space-y-4">
+            <div className="text-[11px] font-bold text-muted-dark uppercase tracking-wider flex items-center gap-2">
+              <Zap className="h-3.5 w-3.5 text-accent" />
+              Optimization settings
+            </div>
 
             <div>
-              <label className="text-[11px] font-bold text-muted-dark uppercase tracking-wider mb-1.5 block">Courier / Destination zone</label>
+              <label className="text-[11px] font-bold text-muted-dark uppercase tracking-wider mb-2 block">Courier / Destination zone</label>
               <select
                 value={shippingZone}
                 onChange={(e) => setShippingZone(e.target.value)}
-                className="w-full rounded-xl border border-border2 bg-surface2 px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(200,255,0,.08)] transition-all"
+                className="w-full rounded-xl border border-border2 bg-surface2 px-4 py-3 text-sm text-foreground outline-none focus:border-accent focus:shadow-[0_0_0_3px_rgba(200,255,0,.08)] transition-all"
               >
                 <option value="Zone A">Zone A — Metro local (₹45/kg) — Mumbai, Delhi, Bangalore</option>
                 <option value="Zone B">Zone B — Regional (₹55/kg) — Same state</option>
@@ -350,11 +391,11 @@ export default function UploadPage() {
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-muted-dark uppercase tracking-wider mb-1.5 block">Optimization priority</label>
-              <div className="grid grid-cols-2 gap-2">
+              <label className="text-[11px] font-bold text-muted-dark uppercase tracking-wider mb-2 block">Optimization priority</label>
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setPriority("cost")}
-                  className={`rounded-xl border px-3.5 py-2.5 text-[12px] font-semibold transition-all ${
+                  className={`rounded-xl border px-4 py-3 text-[12px] font-semibold transition-all ${
                     priority === "cost"
                       ? "border-accent/30 bg-accent/8 text-accent"
                       : "border-border bg-surface2 text-muted hover:border-border2"
@@ -364,7 +405,7 @@ export default function UploadPage() {
                 </button>
                 <button
                   onClick={() => setPriority("speed")}
-                  className={`rounded-xl border px-3.5 py-2.5 text-[12px] font-semibold transition-all ${
+                  className={`rounded-xl border px-4 py-3 text-[12px] font-semibold transition-all ${
                     priority === "speed"
                       ? "border-accent/30 bg-accent/8 text-accent"
                       : "border-border bg-surface2 text-muted hover:border-border2"
@@ -375,8 +416,8 @@ export default function UploadPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleUpload} loading={uploading} className="flex-1">
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleUpload} loading={uploading} size="lg" className="flex-1">
                 🚀 Run AI packaging engine
               </Button>
               <Button variant="outline" onClick={resetUpload}>
@@ -387,7 +428,7 @@ export default function UploadPage() {
         )}
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 text-accent-red bg-accent-red/8 border border-accent-red/20 rounded-xl px-4 py-3 text-[13px]">
+          <div className="mt-4 flex items-center gap-2 text-red bg-red/8 border border-red/20 rounded-xl px-4 py-3 text-[13px]">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -395,20 +436,20 @@ export default function UploadPage() {
 
         {uploading && (
           <div className="mt-4">
-            <div className="w-full bg-border rounded-full h-1.5 overflow-hidden">
-              <div className="bg-accent h-full rounded-full animate-pulse-custom" style={{ width: "60%" }} />
+            <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+              <div className="bg-accent h-full rounded-full animate-pulse-custom progress-glow" style={{ width: "60%" }} />
             </div>
-            <p className="text-[11px] text-muted mt-1.5">Processing orders...</p>
+            <p className="text-[11px] text-muted mt-2">Processing orders...</p>
           </div>
         )}
       </Card>
 
       {/* Results */}
       {result && (
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-[13px] font-semibold text-foreground flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-accent-green" />
+        <Card gradient>
+          <div className="flex items-center justify-between mb-5">
+            <div className="text-[14px] font-semibold text-foreground flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-teal" />
               Packaging plan — per order
             </div>
             <button
@@ -420,30 +461,33 @@ export default function UploadPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            <div className="bg-ink2 border border-border rounded-xl p-4 text-center">
-              <p className="font-display text-2xl font-black text-foreground">{result.total_rows}</p>
-              <p className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Total Rows</p>
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-ink2 border border-border rounded-xl p-5 text-center">
+              <p className="font-display text-3xl font-black text-foreground">{result.total_rows}</p>
+              <p className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Total Rows</p>
             </div>
-            <div className="bg-accent-green/8 border border-accent-green/20 rounded-xl p-4 text-center">
-              <p className="font-display text-2xl font-black text-accent-green">{result.valid_rows}</p>
-              <p className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Valid Rows</p>
+            <div className="bg-teal/8 border border-teal/20 rounded-xl p-5 text-center">
+              <p className="font-display text-3xl font-black text-teal">{result.valid_rows}</p>
+              <p className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Valid Rows</p>
             </div>
-            <div className="bg-accent-red/8 border border-accent-red/20 rounded-xl p-4 text-center">
-              <p className="font-display text-2xl font-black text-accent-red">{result.failed_rows}</p>
-              <p className="text-[10px] text-muted-dark uppercase tracking-wider mt-1">Failed Rows</p>
+            <div className="bg-red/8 border border-red/20 rounded-xl p-5 text-center">
+              <p className="font-display text-3xl font-black text-red">{result.failed_rows}</p>
+              <p className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Failed Rows</p>
             </div>
           </div>
 
           {result.errors.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-[11px] font-bold text-accent-red uppercase tracking-wider mb-2">Row Errors</h4>
+            <div className="mb-5">
+              <h4 className="text-[11px] font-bold text-red uppercase tracking-wider mb-3 flex items-center gap-2">
+                <XCircle className="h-3.5 w-3.5" />
+                Row Errors
+              </h4>
               <div className="max-h-48 overflow-y-auto space-y-2">
                 {result.errors.map((err, i) => (
-                  <div key={i} className="bg-accent-red/6 border border-accent-red/15 rounded-xl p-3 flex items-start gap-2">
-                    <XCircle className="w-4 h-4 text-accent-red mt-0.5 flex-shrink-0" />
+                  <div key={i} className="bg-red/6 border border-red/15 rounded-xl p-3 flex items-start gap-2">
+                    <XCircle className="w-4 h-4 text-red mt-0.5 flex-shrink-0" />
                     <div>
-                      <span className="text-accent-red text-[12px] font-semibold">Row {err.row}:</span>
+                      <span className="text-red text-[12px] font-semibold">Row {err.row}:</span>
                       <span className="text-muted text-[12px] ml-1">{err.error}</span>
                     </div>
                   </div>
@@ -453,10 +497,11 @@ export default function UploadPage() {
           )}
 
           {result.order_ids.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {/* Optimization progress */}
               <div className="flex items-center justify-between">
-                <div className="text-[12px] font-semibold text-foreground">
+                <div className="text-[12px] font-semibold text-foreground flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-accent" />
                   Optimization Status
                 </div>
                 <div className="flex items-center gap-2">
@@ -476,45 +521,139 @@ export default function UploadPage() {
 
               {/* Progress bar */}
               {optimizingOrderIds.length > 0 && (
-                <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-border rounded-full h-2.5 overflow-hidden">
                   <div
-                    className="bg-accent h-full rounded-full transition-all duration-500"
+                    className="bg-accent h-full rounded-full transition-all duration-500 progress-glow"
                     style={{ width: `${(optimizationResults.size / optimizingOrderIds.length) * 100}%` }}
                   />
                 </div>
               )}
 
               {/* Individual order results */}
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                 {result.order_ids.map((orderId) => {
                   const optResult = optimizationResults.get(orderId);
                   const isOptimizing = optimizingOrderIds.includes(orderId) && !optResult;
+                  const isExpanded = expandedUploadOrders.has(orderId);
+                  const show3D = show3DFor === orderId;
+                  const box = boxes.find(b => b.name === optResult?.recommended_box);
 
                   return (
-                    <div key={orderId} className="border border-border rounded-xl p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-[12px] text-accent">Order #{orderId}</span>
-                        {isOptimizing && (
-                          <div className="flex items-center gap-1.5">
-                            <Loader2 className="h-3 w-3 text-accent animate-spin" />
-                            <Badge variant="warning">optimizing...</Badge>
-                          </div>
-                        )}
-                        {optResult && optResult.savings > 0 && (
-                          <Badge variant="success">optimized</Badge>
-                        )}
-                        {optResult && optResult.savings === 0 && (
-                          <Badge variant="warning">no savings</Badge>
+                    <div key={orderId} className="border border-border rounded-xl overflow-hidden hover:border-border2 transition-all">
+                      <div className="flex items-center justify-between p-4 bg-ink2/50">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-[12px] text-accent font-semibold">Order #{orderId}</span>
+                          {isOptimizing && (
+                            <div className="flex items-center gap-1.5">
+                              <Loader2 className="h-3 w-3 text-accent animate-spin" />
+                              <Badge variant="warning">optimizing...</Badge>
+                            </div>
+                          )}
+                          {optResult && optResult.savings > 0 && (
+                            <Badge variant="success">optimized</Badge>
+                          )}
+                          {optResult && optResult.savings === 0 && (
+                            <Badge variant="warning">no savings</Badge>
+                          )}
+                        </div>
+                        {optResult && (
+                          <button
+                            onClick={() => toggleExpandUploadOrder(orderId)}
+                            className="text-[11px] text-accent hover:underline font-semibold"
+                          >
+                            {isExpanded ? "Collapse" : "View details"}
+                          </button>
                         )}
                       </div>
 
-                      {optResult && optResult.savings > 0 && (
-                        <div className="mt-2">
-                          <OptimizationResultCard result={optResult} />
+                      {isExpanded && optResult && (
+                        <div className="p-4 space-y-4 animate-fadeInScale">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <Card className="border-l-[3px] border-l-accent/30 bg-accent/5">
+                              <div className="flex items-start gap-2">
+                                <Package className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
+                                  <p className="text-[14px] font-bold text-accent">{optResult.recommended_box}</p>
+                                  {box && (
+                                    <p className="text-[10px] text-muted mt-1">
+                                      {box.length_cm} × {box.width_cm} × {box.height_cm} cm
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+
+                            <Card className="border-l-[3px] border-l-teal/30 bg-teal/5">
+                              <div className="flex items-start gap-2">
+                                <TrendingUp className="h-4 w-4 text-teal mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Cost Breakdown</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <span className="text-[11px] text-muted line-through">Rs.{optResult.baseline_cost.toFixed(2)}</span>
+                                    <ArrowRight className="h-3 w-3 text-muted" />
+                                    <span className="text-[14px] font-bold text-teal">Rs.{optResult.optimized_cost.toFixed(2)}</span>
+                                  </div>
+                                  {optResult.savings > 0 && (
+                                    <p className="text-[10px] text-teal mt-1">
+                                      Saving Rs.{optResult.savings.toFixed(2)} ({((optResult.savings / optResult.baseline_cost) * 100).toFixed(1)}%)
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+                          </div>
+
+                          {optResult.decision_explanation && (
+                            <Card className="bg-purple/5 border-purple/10">
+                              <div className="flex items-start gap-2">
+                                <span className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Why this box?</span>
+                              </div>
+                              <p className="text-[11px] text-muted leading-relaxed">{optResult.decision_explanation}</p>
+                            </Card>
+                          )}
+
+                          {optResult.packed_items && optResult.packed_items.length > 0 && (
+                            <div>
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-[12px] font-semibold text-foreground flex items-center gap-2">
+                                  3D Packing Visualization
+                                </p>
+                                <button
+                                  onClick={() => toggle3DUpload(orderId)}
+                                  className="flex items-center gap-1.5 rounded-full bg-accent/10 text-accent px-3 py-1 text-[10px] font-semibold hover:bg-accent/20 transition-all"
+                                >
+                                  {show3D ? "Hide 3D" : "Show 3D"}
+                                </button>
+                              </div>
+                              {show3D && (
+                                <ThreeDPackViewer
+                                  box={{
+                                    name: optResult.recommended_box,
+                                    length_cm: box?.length_cm || 45,
+                                    width_cm: box?.width_cm || 35,
+                                    height_cm: box?.height_cm || 25,
+                                  }}
+                                  items={optResult.packed_items.map(item => ({
+                                    product_name: item.product_name,
+                                    position_x: item.position_x,
+                                    position_y: item.position_y,
+                                    position_z: item.position_z,
+                                    length_cm: item.length_cm || 10,
+                                    width_cm: item.width_cm || 10,
+                                    height_cm: item.height_cm || 10,
+                                    is_fragile: item.is_fragile,
+                                    quantity: item.quantity,
+                                  }))}
+                                />
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
-                      {optResult && optResult.savings === 0 && (
-                        <div className="text-[11px] text-muted-dark mt-1">
+
+                      {optResult && optResult.savings === 0 && !isExpanded && (
+                        <div className="px-4 py-3 text-[11px] text-muted-dark border-t border-border/50">
                           {optResult.decision_explanation || "No cost savings possible with available boxes"}
                         </div>
                       )}
@@ -523,7 +662,7 @@ export default function UploadPage() {
                 })}
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-3 pt-3 border-t border-border/50">
                 <Button onClick={() => router.push("/orders")} className="flex-1">
                   <CheckCircle className="w-4 h-4" />
                   View All Orders

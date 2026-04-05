@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <div className="flex flex-1 flex-col pl-[210px]">
+      <div className="flex flex-1 flex-col pl-[220px]">
         <Header title={title} />
         <PageWrapper>{children}</PageWrapper>
       </div>
