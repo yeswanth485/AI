@@ -71,40 +71,12 @@ export default function UploadPage() {
   const [dragOver, setDragOver] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [step, setStep] = useState(1);
-  const [optimizingOrderIds, setOptimizingOrderIds] = useState<number[]>([]);
-  const [optimizationResults, setOptimizationResults] = useState<Map<number, OptimizationResult>>(new Map());
-  const [allOptimized, setAllOptimized] = useState(false);
-  const [expandedUploadOrders, setExpandedUploadOrders] = useState<Set<number>>(new Set());
-  const [show3DFor, setShow3DFor] = useState<number | null>(null);
   const [boxes, setBoxes] = useState<BoxInfo[]>([]);
 
   useEffect(() => {
     api.get("/inventory")
       .then(res => setBoxes(res.data))
       .catch(() => {});
-
-    const savedState = sessionStorage.getItem("upload_state");
-    if (savedState) {
-      try {
-        const parsed = JSON.parse(savedState);
-        if (parsed.result) {
-          setResult(parsed.result as UploadResult);
-          setStep(parsed.step || 4);
-          setOptimizingOrderIds(parsed.optimizingOrderIds || []);
-          setAllOptimized(parsed.allOptimized || false);
-          setExpandedUploadOrders(new Set(parsed.expandedUploadOrders || []));
-          setShow3DFor(parsed.show3DFor);
-          if (parsed.optimizationResults) {
-            const optMap = new Map<number, OptimizationResult>(
-              Object.entries(parsed.optimizationResults).map(([k, v]) => [Number(k), v as OptimizationResult])
-            );
-            setOptimizationResults(optMap);
-          }
-        }
-      } catch {
-        sessionStorage.removeItem("upload_state");
-      }
-    }
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,11 +134,6 @@ export default function UploadPage() {
     setResult(null);
     setError(null);
     setStep(1);
-    setOptimizingOrderIds([]);
-    setOptimizationResults(new Map());
-    setAllOptimized(false);
-    setExpandedUploadOrders(new Set());
-    setShow3DFor(null);
   };
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -229,42 +196,15 @@ export default function UploadPage() {
   }, []);
 
   useEffect(() => {
-    if (!result || result.order_ids.length === 0 || allOptimizedRef.current) return;
-
-    const newlyCreated = result.order_ids.filter(
-      (id) => !orderIdsRef.current.includes(id) && !resultsRef.current.has(id)
-    );
-    if (newlyCreated.length > 0) {
-      orderIdsRef.current = [...orderIdsRef.current, ...newlyCreated];
-      setOptimizingOrderIds(orderIdsRef.current);
-    }
-
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-    }
-
-    pollingRef.current = setInterval(pollOptimizationStatus, 2000);
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
-  }, [result, pollOptimizationStatus]);
-
-  useEffect(() => {
-    if (!result) return;
+    if (!result || result.order_ids.length === 0) return;
+    
+    // Save upload state to sessionStorage for persistence
     const stateToSave = {
       result,
       step,
-      optimizingOrderIds,
-      optimizationResults: Object.fromEntries(optimizationResults),
-      allOptimized,
-      expandedUploadOrders: Array.from(expandedUploadOrders),
-      show3DFor,
     };
     sessionStorage.setItem("upload_state", JSON.stringify(stateToSave));
-  }, [result, step, optimizingOrderIds, optimizationResults, allOptimized, expandedUploadOrders, show3DFor]);
+  }, [result, step]);
 
   const steps = [
     { n: 1, label: "Upload CSV / Excel" },
@@ -513,43 +453,91 @@ export default function UploadPage() {
             </div>
           </div>
 
-          {result.errors.length > 0 && (
-            <div className="mb-5">
-              <h4 className="text-[11px] font-bold text-red uppercase tracking-wider mb-3 flex items-center gap-2">
-                <XCircle className="h-3.5 w-3.5" />
-                Row Errors
-              </h4>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {result.errors.map((err, i) => (
-                  <div key={i} className="bg-red/6 border border-red/15 rounded-xl p-3 flex items-start gap-2">
-                    <XCircle className="w-4 h-4 text-red mt-0.5 flex-shrink-0" />
-                    <div>
-                      <span className="text-red text-[12px] font-semibold">Row {err.row}:</span>
-                      <span className="text-muted text-[12px] ml-1">{err.error}</span>
+            {result.errors.length > 0 && (
+              <div className="mb-5">
+                <h4 className="text-[11px] font-bold text-red uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <XCircle className="h-3.5 w-3.5" />
+                  Row Errors
+                </h4>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {result.errors.map((err, i) => (
+                    <div key={i} className="bg-red/6 border border-red/15 rounded-xl p-3 flex items-start gap-2">
+                      <XCircle className="w-4 h-4 text-red mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="text-red text-[12px] font-semibold">Row {err.row}:</span>
+                        <span className="text-muted text-[12px] ml-1">{err.error}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {result.order_ids.length > 0 && (
-            <div className="space-y-4">
-              {/* Optimization progress */}
-              <div className="flex items-center justify-between">
-                <div className="text-[12px] font-semibold text-foreground flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-accent" />
-                  Optimization Status
+                  ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  {optimizingOrderIds.length > 0 && !allOptimized && (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 text-accent animate-spin" />
-                      <span className="text-[11px] text-accent">
-                        {optimizationResults.size}/{optimizingOrderIds.length} completed
-                      </span>
-                    </>
-                  )}
+              </div>
+            )}
+
+            {result.order_ids.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-[14px] font-semibold text-foreground flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-accent" />
+                    Optimization Status
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] text-accent">
+                      Optimization running in background for {result.order_ids.length} orders
+                    </span>
+                    <span className="text-[11px] text-muted-dark"> • </span>
+                    <Button onClick={() => router.push("/orders")} size="sm" variant="outline">
+                      View Orders →
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-3 border-t border-border/50">
+                  <Button onClick={() => router.push("/orders")} className="flex-1">
+                    <CheckCircle className="w-4 h-4" />
+                    View All Orders
+                  </Button>
+                  <Button onClick={() => router.push("/analytics")} variant="outline" className="flex-1">
+                    <Zap className="w-4 h-4" />
+                    View Analytics
+                  </Button>
+                  <Button variant="outline" onClick={resetUpload}>
+                    ← Upload New File
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {result.order_ids.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-[14px] font-semibold text-foreground flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-accent" />
+                    Optimization Status
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] text-accent">
+                      Optimization running in background for {result.order_ids.length} orders
+                    </span>
+                    <span className="text-[11px] text-muted-dark"> • </span>
+                    <Button onClick={() => router.push("/orders")} size="sm" variant="outline">
+                      View Orders →
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-3 border-t border-border/50">
+                  <Button onClick={() => router.push("/orders")} className="flex-1">
+                    <CheckCircle className="w-4 h-4" />
+                    View All Orders
+                  </Button>
+                  <Button onClick={() => router.push("/analytics")} variant="outline" className="flex-1">
+                    <Zap className="w-4 h-4" />
+                    View Analytics
+                  </Button>
+                  <Button variant="outline" onClick={resetUpload}>
+                    ← Upload New File
+                  </Button>
+                </div>
+              </div>
+            )}
                   {allOptimized && (
                     <Badge variant="success">All optimized</Badge>
                   )}
