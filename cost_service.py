@@ -41,18 +41,31 @@ def calculate_shipping_cost(
 
 
 def calculate_baseline_cost(db: Session, order: Order) -> float:
-    available_boxes = (
-        db.query(BoxInventory).filter(BoxInventory.quantity_available > 0).all()
-    )
-    if not available_boxes:
-        raise ValueError("No boxes available in inventory")
+    order_items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
+    if not order_items:
+        raise ValueError("No order items to calculate baseline")
 
-    largest_box = max(
-        available_boxes,
-        key=lambda b: b.length_cm * b.width_cm * b.height_cm,
-    )
+    total_item_volume = 0.0
+    total_weight = 0.0
 
-    return calculate_optimized_cost(db, order, largest_box)
+    for item in order_items:
+        product = db.query(Product).filter(Product.id == item.product_id).first()
+        if product is None:
+            raise ValueError(f"Product {item.product_id} not found")
+        total_item_volume += (
+            float(product.length_cm)
+            * float(product.width_cm)
+            * float(product.height_cm)
+        ) * item.quantity
+        total_weight += float(product.weight_kg) * item.quantity
+
+    inefficiency_factor = 1.5
+    simulated_volume = total_item_volume * inefficiency_factor
+
+    simulated_dim_weight = simulated_volume / 5000.0
+    chargeable_weight = max(total_weight, simulated_dim_weight)
+
+    return calculate_shipping_cost(db, str(order.shipping_zone), chargeable_weight)
 
 
 def calculate_optimized_cost(db: Session, order: Order, box: BoxInventory) -> float:

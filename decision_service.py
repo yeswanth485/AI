@@ -32,6 +32,10 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
         db.commit()
         return {"error": "Order has no items"}
 
+    product_map = {p.id: p for p in db.query(Product).filter(
+        Product.id.in_([item.product_id for item in order_items])
+    ).all()}
+
     available_boxes = (
         db.query(BoxInventory).filter(BoxInventory.quantity_available > 0).all()
     )
@@ -66,7 +70,7 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
     if not filtered_candidates:
         total_weight = 0.0
         for item in order_items:
-            product = db.query(Product).filter(Product.id == item.product_id).first()
+            product = product_map.get(item.product_id)
             if product is None:
                 setattr(order, "status", "failed")
                 db.commit()
@@ -108,7 +112,7 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
 
     actual_weight_kg = 0.0
     for item in order_items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = product_map.get(item.product_id)
         if product is None:
             setattr(order, "status", "failed")
             db.commit()

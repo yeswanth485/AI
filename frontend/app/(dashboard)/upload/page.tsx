@@ -82,6 +82,29 @@ export default function UploadPage() {
     api.get("/inventory")
       .then(res => setBoxes(res.data))
       .catch(() => {});
+
+    const savedState = sessionStorage.getItem("upload_state");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.result) {
+          setResult(parsed.result as UploadResult);
+          setStep(parsed.step || 4);
+          setOptimizingOrderIds(parsed.optimizingOrderIds || []);
+          setAllOptimized(parsed.allOptimized || false);
+          setExpandedUploadOrders(new Set(parsed.expandedUploadOrders || []));
+          setShow3DFor(parsed.show3DFor);
+          if (parsed.optimizationResults) {
+            const optMap = new Map<number, OptimizationResult>(
+              Object.entries(parsed.optimizationResults).map(([k, v]) => [Number(k), v as OptimizationResult])
+            );
+            setOptimizationResults(optMap);
+          }
+        }
+      } catch {
+        sessionStorage.removeItem("upload_state");
+      }
+    }
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,6 +251,20 @@ export default function UploadPage() {
       }
     };
   }, [result, pollOptimizationStatus]);
+
+  useEffect(() => {
+    if (!result) return;
+    const stateToSave = {
+      result,
+      step,
+      optimizingOrderIds,
+      optimizationResults: Object.fromEntries(optimizationResults),
+      allOptimized,
+      expandedUploadOrders: Array.from(expandedUploadOrders),
+      show3DFor,
+    };
+    sessionStorage.setItem("upload_state", JSON.stringify(stateToSave));
+  }, [result, step, optimizingOrderIds, optimizationResults, allOptimized, expandedUploadOrders, show3DFor]);
 
   const steps = [
     { n: 1, label: "Upload CSV / Excel" },

@@ -28,24 +28,35 @@ class PackingResult:
     total_layers: int
 
 
-def sort_items_ffd(db: Session, items: List[OrderItem]) -> List[OrderItem]:
+def _build_product_map(db: Session, items: List[OrderItem]) -> dict:
+    """Load all products for the given items into a dictionary to avoid N+1 queries."""
+    product_ids = list(set(item.product_id for item in items))
+    products = db.query(Product).filter(Product.id.in_(product_ids)).all()
+    return {p.id: p for p in products}
+
+
+def sort_items_ffd(db: Session, items: List[OrderItem], product_map: dict = None) -> List[OrderItem]:
     """Sort items using First Fit Decreasing (FFD) by volume.
     Fragile items are placed last (on top).
     """
+    if product_map is None:
+        product_map = _build_product_map(db, items)
 
     def item_volume(item: OrderItem) -> float:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = product_map.get(item.product_id)
+        if product is None:
+            return 0.0
         return product.length_cm * product.width_cm * product.height_cm * item.quantity
 
     non_fragile = [
         i
         for i in items
-        if not db.query(Product).filter(Product.id == i.product_id).first().is_fragile
+        if not product_map.get(i.product_id, Product(is_fragile=False)).is_fragile
     ]
     fragile = [
         i
         for i in items
-        if db.query(Product).filter(Product.id == i.product_id).first().is_fragile
+        if product_map.get(i.product_id, Product(is_fragile=False)).is_fragile
     ]
 
     non_fragile_sorted = sorted(non_fragile, key=item_volume, reverse=True)
@@ -55,13 +66,16 @@ def sort_items_ffd(db: Session, items: List[OrderItem]) -> List[OrderItem]:
 
 
 def assign_spatial_positions(
-    db: Session, items: List[OrderItem], box: BoxInventory
+    db: Session, items: List[OrderItem], box: BoxInventory, product_map: dict = None
 ) -> List[PackedItem]:
     """Assign real spatial positions using shelf-based 3D bin packing.
     Items are placed along X axis first, then Z, then Y (layers).
     """
+    if product_map is None:
+        product_map = _build_product_map(db, items)
+
     packed_items = []
-    sorted_items = sort_items_ffd(db, items)
+    sorted_items = sort_items_ffd(db, items, product_map)
 
     cursor_x = 0.0
     cursor_y = 0.0
@@ -74,7 +88,7 @@ def assign_spatial_positions(
     box_height = float(box.height_cm)
 
     for item in sorted_items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = product_map.get(item.product_id)
         if product is None:
             continue
 
@@ -141,13 +155,15 @@ def assign_spatial_positions(
 def items_fit_in_box(
     db: Session, items: List[OrderItem], box: BoxInventory
 ) -> PackingResult:
+    product_map = _build_product_map(db, items)
+
     total_weight = 0.0
     total_volume = 0.0
     has_fragile = False
     total_stacked_height = 0.0
 
     for item in items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = product_map.get(item.product_id)
         if product is None:
             return PackingResult(
                 fits=False,
@@ -208,7 +224,7 @@ def items_fit_in_box(
         )
 
     efficiency_score = total_volume / box_volume
-    packed_items = assign_spatial_positions(db, items, box)
+    packed_items = assign_spatial_positions(db, items, box, product_map)
 
     layers = set(p.layer for p in packed_items)
     total_layers = len(layers) if layers else 0
