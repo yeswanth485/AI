@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Order } from "@/types";
+import { Order, OrderOptimizationSummary } from "@/types";
 import Badge from "@/components/ui/Badge";
-import { formatDate } from "@/lib/utils";
-import { Zap, Eye, Store, MapPin, CreditCard, Package } from "lucide-react";
+import { Zap, Eye, Store, MapPin, CreditCard, Package, AlertTriangle } from "lucide-react";
 
 interface OrdersTableProps {
   orders: Order[];
+  summaries?: Map<number, OrderOptimizationSummary>;
   onOptimize?: (id: number) => void;
   onPackNow?: (id: number) => void;
 }
@@ -28,7 +28,7 @@ const channelColors: Record<string, string> = {
   unicommerce: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
 };
 
-export default function OrdersTable({ orders, onOptimize, onPackNow }: OrdersTableProps) {
+export default function OrdersTable({ orders, summaries, onOptimize, onPackNow }: OrdersTableProps) {
   if (orders.length === 0) {
     return (
       <div className="rounded-2xl border border-border bg-surface p-12 text-center">
@@ -50,9 +50,10 @@ export default function OrdersTable({ orders, onOptimize, onPackNow }: OrdersTab
               <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Location</th>
               <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Pincode</th>
               <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Payment</th>
-              <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Zone</th>
               <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Created</th>
+              <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Box</th>
+              <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Savings</th>
+              <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Fragile</th>
               <th className="px-4 py-3.5 text-[10px] font-bold text-muted-dark uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -120,14 +121,31 @@ export default function OrdersTable({ orders, onOptimize, onPackNow }: OrdersTab
                   )}
                 </td>
                 <td className="px-4 py-3.5">
-                  <span className="text-[12px] text-muted bg-ink2 px-2 py-0.5 rounded-full">{order.shipping_zone}</span>
-                </td>
-                <td className="px-4 py-3.5">
                   <Badge variant={statusVariant[order.status] || "default"}>
                     {order.status}
                   </Badge>
                 </td>
-                <td className="px-4 py-3.5 text-muted text-[12px]">{formatDate(order.created_at)}</td>
+                <td className="px-4 py-3.5">
+                  {summaries?.get(order.id)?.recommended_box ? (
+                    <span className="text-[12px] text-accent font-semibold">{summaries.get(order.id)!.recommended_box}</span>
+                  ) : (
+                    <span className="text-[12px] text-muted-dark">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3.5">
+                  {summaries?.get(order.id) && summaries.get(order.id)!.savings > 0 ? (
+                    <span className="text-[12px] text-teal font-semibold">+Rs.{summaries.get(order.id)!.savings.toFixed(2)}</span>
+                  ) : (
+                    <span className="text-[12px] text-muted-dark">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3.5">
+                  {summaries?.get(order.id)?.has_fragile ? (
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <span className="text-[12px] text-muted-dark">—</span>
+                  )}
+                </td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1.5">
                     <Link
@@ -149,7 +167,7 @@ export default function OrdersTable({ orders, onOptimize, onPackNow }: OrdersTab
                     {(order.status === "optimized" || order.status === "no_savings") && onPackNow && (
                       <button
                         onClick={() => onPackNow(order.id)}
-                        className="flex items-center gap-1 text-[11px] text-teal hover:text-teal/80 transition-colors font-semibold px-2 py-1.5 rounded-lg hover:bg-teal/5"
+                        className="flex items-center gap-1 text-[11px] text-teal hover:text-teal/80 transition-colors font-semibold px-3 py-1.5 rounded-lg bg-teal/10 hover:bg-teal/20 ml-1"
                       >
                         <Package className="h-3.5 w-3.5" />
                         Pack Now

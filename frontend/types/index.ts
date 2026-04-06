@@ -117,6 +117,7 @@ export interface ProfitTrendPoint {
 export interface AnalyticsSummary {
   total_orders: number;
   total_savings: number;
+  today_savings: number;
   avg_savings_per_order: number;
   avg_efficiency: number;
   total_profit: number;
@@ -135,6 +136,14 @@ export interface UploadResult {
   errors: { row: number; error: string }[];
 }
 
+export interface OrderOptimizationSummary {
+  order_id: number;
+  recommended_box: string | null;
+  savings: number;
+  has_fragile: boolean;
+  efficiency_score: number;
+}
+
 export interface PackInstruction {
   order_id: number;
   box_name: string;
@@ -151,4 +160,12 @@ export interface Toast {
   id: string;
   message: string;
   type: "success" | "error" | "info";
+}
+
+export interface OrderOptimizationSummary {
+  order_id: number;
+  recommended_box: string | null;
+  savings: number;
+  has_fragile: boolean;
+  efficiency_score: number;
 }

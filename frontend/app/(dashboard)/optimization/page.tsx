@@ -13,8 +13,8 @@ import Badge from "@/components/ui/Badge";
 import { useAppContext } from "@/context/AppContext";
 import {
   Zap, RotateCcw, RefreshCw, CheckCircle, Loader2, Package,
-  TrendingUp, Info, Rotate3D, ChevronDown, ChevronUp, DollarSign,
-  Box, ArrowRight, AlertTriangle, XCircle, Clock
+  TrendingUp, Info, Rotate3D, ChevronDown, ChevronUp,
+  Box, AlertTriangle, XCircle, Clock
 } from "lucide-react";
 import type { OptimizationResult } from "@/types";
 import dynamic from "next/dynamic";
@@ -110,6 +110,7 @@ export default function OptimizationPage() {
         pollingRef.current = setInterval(pollCompletedOrders, 2000);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders]);
 
   useEffect(() => {
@@ -321,43 +322,80 @@ export default function OptimizationPage() {
             <Badge variant="success">Saved Rs.{currentResult.savings.toFixed(2)}</Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <Card className="bg-accent/5 border-accent/10">
-              <div className="flex items-start gap-3">
-                <Box className="h-5 w-5 text-accent mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
-                  <p className="text-[18px] font-bold text-accent">{currentResult.recommended_box}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-teal/5 border-teal/10">
-              <div className="flex items-start gap-3">
-                <DollarSign className="h-5 w-5 text-teal mt-0.5" />
-                <div>
-                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Cost Breakdown</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-[12px] text-muted line-through">Rs.{currentResult.baseline_cost.toFixed(2)}</span>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted" />
-                    <span className="text-[18px] font-bold text-teal">Rs.{currentResult.optimized_cost.toFixed(2)}</span>
+          <div className="flex flex-col gap-4 mb-4">
+            <Card className="bg-accent/5 border-accent/20 border-l-[4px] border-l-accent relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Box className="h-6 w-6 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
+                    <p className="text-[28px] font-black text-accent tracking-tight leading-none mb-2">{currentResult.recommended_box}</p>
+                    {currentResult.boxInfo && (
+                      <p className="text-[12px] text-muted font-medium">
+                        {currentResult.boxInfo.length_cm} × {currentResult.boxInfo.width_cm} × {currentResult.boxInfo.height_cm} cm · Max {currentResult.boxInfo.max_weight_kg}kg
+                        {currentResult.boxInfo.supports_fragile && <span className="text-amber-500 font-bold ml-1">· Fragile-safe</span>}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            </Card>
-          </div>
-
-          {currentResult.decision_explanation && (
-            <Card className="bg-purple/5 border-purple/10 mb-4">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-purple mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Why this box?</p>
-                  <p className="text-[12px] text-muted leading-relaxed">{currentResult.decision_explanation}</p>
+                
+                <div className="text-right flex flex-col items-center">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full border-[3px] border-accent text-accent shadow-[0_0_15px_rgba(200,255,0,0.2)] bg-accent/10">
+                    <span className="text-[16px] font-black leading-none">{(currentResult.efficiency_score * 100).toFixed(0)}%</span>
+                  </div>
+                  <p className="text-[10px] text-muted-dark font-bold mt-2 uppercase tracking-wider">Efficiency</p>
                 </div>
               </div>
             </Card>
-          )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card className="bg-surface2 border-border">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="h-5 w-5 text-teal mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 w-full">
+                    <p className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-3">Cost Analysis</p>
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between items-center text-[12px]">
+                        <span className="text-muted">Baseline Cost</span>
+                        <span className="text-muted line-through">Rs.{currentResult.baseline_cost.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[13px] font-semibold">
+                        <span className="text-foreground">Optimized Cost</span>
+                        <span className="text-foreground">Rs.{currentResult.optimized_cost.toFixed(2)}</span>
+                      </div>
+                      <div className="h-px bg-border my-1"></div>
+                      {currentResult.savings > 0 ? (
+                        <div className="flex justify-between items-center text-[14px] font-bold text-teal">
+                          <span>Total Savings</span>
+                          <span>Rs.{currentResult.savings.toFixed(2)}</span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center text-[14px] font-bold text-orange">
+                          <span>Best Fit Only</span>
+                          <span>Rs.0.00</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {currentResult.decision_explanation && (
+                <Card className="bg-purple/5 border-purple/10">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-purple mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-[10px] text-purple/80 uppercase tracking-wider font-bold mb-2">Why this box?</p>
+                      <p className="text-[13px] text-foreground/80 leading-relaxed font-medium">{currentResult.decision_explanation}</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
+            </div>
+          </div>
 
           {currentResult.packed_items && currentResult.packed_items.length > 0 && (
             <div>
@@ -516,55 +554,80 @@ export default function OptimizationPage() {
                 {isExpanded && optResult && (
                   <div className="mt-5 pt-5 border-t border-border/50 space-y-4 animate-fadeInScale">
                     {/* Box Recommendation & Why */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Card className="border-l-[3px] border-l-accent/30 bg-accent/5">
-                        <div className="flex items-start gap-3">
-                          <Box className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
-                            <p className="text-[16px] font-bold text-accent">{optResult.recommended_box}</p>
-                            {optResult.boxInfo && (
-                              <p className="text-[11px] text-muted mt-1">
-                                {optResult.boxInfo.length_cm} × {optResult.boxInfo.width_cm} × {optResult.boxInfo.height_cm} cm · Max {optResult.boxInfo.max_weight_kg}kg
-                                {optResult.boxInfo.supports_fragile && " · Supports fragile"}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-
-                      <Card className="border-l-[3px] border-l-teal/30 bg-teal/5">
-                        <div className="flex items-start gap-3">
-                          <TrendingUp className="h-5 w-5 text-teal mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Cost Breakdown</p>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-[12px] text-muted line-through">Rs.{optResult.baseline_cost.toFixed(2)}</span>
-                              <ArrowRight className="h-3.5 w-3.5 text-muted" />
-                              <span className="text-[16px] font-bold text-teal">Rs.{optResult.optimized_cost.toFixed(2)}</span>
+                    <div className="flex flex-col gap-4">
+                      <Card className="bg-accent/5 border-accent/20 border-l-[4px] border-l-accent relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+                        <div className="flex items-start justify-between relative z-10">
+                          <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
+                              <Box className="h-5 w-5 text-accent" />
                             </div>
-                            {optResult.savings > 0 && (
-                              <p className="text-[11px] text-teal mt-1">
-                                Saving Rs.{optResult.savings.toFixed(2)} ({((optResult.savings / optResult.baseline_cost) * 100).toFixed(1)}%)
-                              </p>
-                            )}
+                            <div>
+                              <p className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-1">Recommended Box</p>
+                              <p className="text-[20px] font-black text-accent tracking-tight leading-none mb-1.5">{optResult.recommended_box}</p>
+                              {optResult.boxInfo && (
+                                <p className="text-[11px] text-muted font-medium">
+                                  {optResult.boxInfo.length_cm} × {optResult.boxInfo.width_cm} × {optResult.boxInfo.height_cm} cm · Max {optResult.boxInfo.max_weight_kg}kg
+                                  {optResult.boxInfo.supports_fragile && <span className="text-amber-500 font-bold ml-1">· Fragile-safe</span>}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="text-right flex flex-col items-center">
+                            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full border-[2px] border-accent text-accent shadow-[0_0_10px_rgba(200,255,0,0.2)] bg-accent/10">
+                              <span className="text-[12px] font-black leading-none">{(optResult.efficiency_score * 100).toFixed(0)}%</span>
+                            </div>
+                            <p className="text-[9px] text-muted-dark font-bold mt-1.5 uppercase tracking-wider">Efficiency</p>
                           </div>
                         </div>
                       </Card>
-                    </div>
 
-                    {/* Why this box */}
-                    {optResult.decision_explanation && (
-                      <Card className="bg-purple/5 border-purple/10">
-                        <div className="flex items-start gap-2">
-                          <Info className="h-4 w-4 text-purple mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-[11px] text-muted-dark uppercase tracking-wider font-bold mb-1">Why this box?</p>
-                            <p className="text-[12px] text-muted leading-relaxed">{optResult.decision_explanation}</p>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <Card className="bg-surface2 border-border">
+                          <div className="flex items-start gap-3">
+                            <TrendingUp className="h-5 w-5 text-teal mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 w-full">
+                              <p className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-3">Cost Analysis</p>
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center text-[12px]">
+                                  <span className="text-muted">Baseline Cost</span>
+                                  <span className="text-muted line-through">Rs.{optResult.baseline_cost.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-[13px] font-semibold">
+                                  <span className="text-foreground">Optimized Cost</span>
+                                  <span className="text-foreground">Rs.{optResult.optimized_cost.toFixed(2)}</span>
+                                </div>
+                                <div className="h-px bg-border my-1"></div>
+                                {optResult.savings > 0 ? (
+                                  <div className="flex justify-between items-center text-[13px] font-bold text-teal">
+                                    <span>Total Savings</span>
+                                    <span>Rs.{optResult.savings.toFixed(2)}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex justify-between items-center text-[13px] font-bold text-orange">
+                                    <span>Best Fit Only</span>
+                                    <span>Rs.0.00</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    )}
+                        </Card>
+
+                        {optResult.decision_explanation && (
+                          <Card className="bg-purple/5 border-purple/10">
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 text-purple mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-[10px] text-purple/80 uppercase tracking-wider font-bold mb-1.5">Why this box?</p>
+                                <p className="text-[12px] text-foreground/80 leading-relaxed font-medium">{optResult.decision_explanation}</p>
+                              </div>
+                            </div>
+                          </Card>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Packing Order */}
                     {optResult.item_order && optResult.item_order.length > 0 && (

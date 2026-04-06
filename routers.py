@@ -38,6 +38,7 @@ from schemas import (
     ProfitTrendPoint,
     UploadResult,
     PackInstructionResponse,
+    OrderOptimizationSummary,
 )
 from decision_service import optimize_packaging
 from upload_service import (
@@ -184,6 +185,31 @@ def create_order(
 def list_orders(db: Session = Depends(get_db)):
     orders = db.query(Order).all()
     return orders
+
+
+@router.get("/orders/optimization-summary", response_model=list[OrderOptimizationSummary])
+def get_orders_optimization_summary(db: Session = Depends(get_db)):
+    """Bulk fetch optimization metadata for all orders — box, savings, fragile flag."""
+    plans = db.query(PackagingPlan).all()
+    result = []
+    for plan in plans:
+        box = db.query(BoxInventory).filter(BoxInventory.id == plan.box_id).first()
+        order_items = db.query(OrderItem).filter(OrderItem.order_id == plan.order_id).all()
+        has_fragile = False
+        for oi in order_items:
+            from models import Product
+            product = db.query(Product).filter(Product.id == oi.product_id).first()
+            if product and product.is_fragile:
+                has_fragile = True
+                break
+        result.append(OrderOptimizationSummary(
+            order_id=plan.order_id,
+            recommended_box=box.name if box else None,
+            savings=round(float(plan.savings), 2),
+            has_fragile=has_fragile,
+            efficiency_score=round(float(plan.efficiency_score), 2),
+        ))
+    return result
 
 
 @router.get("/orders/{order_id}", response_model=OrderResponse)
@@ -467,6 +493,9 @@ def get_analytics(db: Session = Depends(get_db)):
     )
     total_profit = sum(getattr(p, "profit", 0.0) for p in plans)
 
+    today = datetime.utcnow().date()
+    today_savings = 0.0
+
     savings_trend = []
     profit_trend = []
     box_usage_map = {}
@@ -489,6 +518,8 @@ def get_analytics(db: Session = Depends(get_db)):
                     optimized=plan.optimized_cost,
                 )
             )
+            if order.created_at and order.created_at.date() == today:
+                today_savings += float(plan.savings)
 
         box = db.query(BoxInventory).filter(BoxInventory.id == plan.box_id).first()
         if box:
@@ -502,6 +533,7 @@ def get_analytics(db: Session = Depends(get_db)):
     return AnalyticsSummary(
         total_orders=total_orders,
         total_savings=round(total_savings, 2),
+        today_savings=round(today_savings, 2),
         avg_savings_per_order=round(avg_savings, 2),
         avg_efficiency=round(avg_efficiency, 2),
         total_profit=round(total_profit, 2),

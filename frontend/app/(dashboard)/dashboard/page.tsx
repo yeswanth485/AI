@@ -127,32 +127,29 @@ export default function DashboardPage() {
             </div>
             <Badge variant="warning">{pendingCount} pending</Badge>
           </div>
-          <div className="font-display text-[28px] font-black tracking-tight leading-none relative">
+          <div className="font-display text-[28px] font-black tracking-tight leading-none relative z-10">
             {analytics.total_orders}
           </div>
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Orders optimized</div>
+          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5 relative z-10">Orders optimized</div>
         </Card>
 
-        <Card hover gradient className="group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-teal/5 rounded-full blur-2xl -translate-y-6 translate-x-6 group-hover:bg-teal/10 transition-all" />
-          <div className="flex items-center justify-between mb-4 relative">
+        <Card hover gradient className="group overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal/10 rounded-full blur-2xl -translate-y-6 translate-x-6 group-hover:bg-teal/20 transition-all" />
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-teal/10 border border-teal/20 flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-teal" />
             </div>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-teal bg-teal/10 px-2.5 py-1 rounded-full">
-              <ArrowUpRight className="h-3 w-3" />
-              28%
-            </span>
+            <Badge variant="success">Today</Badge>
           </div>
-          <div className="font-display text-[28px] font-black tracking-tight leading-none text-teal relative">
-            {formatCurrency(analytics.total_savings)}
+          <div className="font-display text-[28px] font-black tracking-tight leading-none text-teal relative z-10">
+            {formatCurrency(analytics.today_savings)}
           </div>
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Cost saved (est.)</div>
+          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5 relative z-10">Today&apos;s Savings</div>
         </Card>
 
-        <Card hover gradient className="group">
+        <Card hover gradient className="group overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-purple/5 rounded-full blur-2xl -translate-y-6 translate-x-6 group-hover:bg-purple/10 transition-all" />
-          <div className="flex items-center justify-between mb-4 relative">
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-purple/10 border border-purple/20 flex items-center justify-center">
               <Gauge className="h-5 w-5 text-purple" />
             </div>
@@ -160,26 +157,23 @@ export default function DashboardPage() {
               ↑5%
             </span>
           </div>
-          <div className="font-display text-[28px] font-black tracking-tight leading-none text-purple relative">
+          <div className="font-display text-[28px] font-black tracking-tight leading-none text-purple relative z-10">
             {formatPercentage(analytics.avg_efficiency)}
           </div>
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Avg efficiency</div>
+          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5 relative z-10">Avg efficiency</div>
         </Card>
 
-        <Card hover gradient className="group">
+        <Card hover gradient className="group overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue/5 rounded-full blur-2xl -translate-y-6 translate-x-6 group-hover:bg-blue/10 transition-all" />
-          <div className="flex items-center justify-between mb-4 relative">
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-blue/10 border border-blue/20 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-blue" />
+              <Zap className="h-5 w-5 text-blue" />
             </div>
-            <span className="text-[10px] font-bold text-muted-dark bg-surface2 px-2.5 py-1 rounded-full">
-              per order
-            </span>
           </div>
-          <div className="font-display text-[28px] font-black tracking-tight leading-none text-blue relative">
-            {formatCurrency(analytics.avg_savings_per_order)}
+          <div className="font-display text-[28px] font-black tracking-tight leading-none text-blue relative z-10">
+            {formatCurrency(analytics.total_savings)}
           </div>
-          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5">Avg savings / order</div>
+          <div className="text-[10px] text-muted-dark uppercase tracking-wider mt-1.5 relative z-10">Total Savings (est.)</div>
         </Card>
       </div>
 

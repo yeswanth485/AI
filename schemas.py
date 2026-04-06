@@ -171,6 +171,7 @@ class ProfitTrendPoint(BaseModel):
 class AnalyticsSummary(BaseModel):
     total_orders: int
     total_savings: float
+    today_savings: float = 0.0
     avg_savings_per_order: float
     avg_efficiency: float
     total_profit: float = 0.0
@@ -199,3 +200,11 @@ class PackInstructionResponse(BaseModel):
     box_name: str
     instructions: str
     item_order: List[dict]
+
+
+class OrderOptimizationSummary(BaseModel):
+    order_id: int
+    recommended_box: Optional[str] = None
+    savings: float = 0.0
+    has_fragile: bool = False
+    efficiency_score: float = 0.0

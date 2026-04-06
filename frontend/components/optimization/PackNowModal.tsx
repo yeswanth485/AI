@@ -7,8 +7,8 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Spinner from "@/components/ui/Spinner";
 import {
-  TrendingUp, Info, Rotate3D, ArrowRight,
-  X, Box, Layers, CheckCircle, AlertTriangle, Zap, Ruler
+  TrendingUp, Info, Rotate3D,
+  X, Box, Layers, CheckCircle, AlertTriangle, Zap, Ruler, ShieldAlert, ArrowDownCircle, ArrowUpCircle, Circle
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import api from "@/services/api";
@@ -37,7 +37,9 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
   const [boxInfo, setBoxInfo] = useState<BoxInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [show3D, setShow3D] = useState(false);
+  const [show3D, setShow3D] = useState(true);
+
+  const hasFragile = result?.item_order?.some(item => item.is_fragile) || false;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -113,6 +115,23 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
 
           {result && !loading && (
             <>
+              {/* Fragile Alert */}
+              {hasFragile && (
+                <div className="rounded-xl p-4 border bg-amber-500/10 border-amber-500/30">
+                  <div className="flex items-center gap-3">
+                    <ShieldAlert className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                    <div>
+                      <p className="text-[13px] font-bold text-amber-500 uppercase tracking-wide">
+                        Fragile Order
+                      </p>
+                      <p className="text-[12px] text-amber-500/80 mt-0.5 font-medium">
+                        Contains delicate items. Pack carefully and add necessary padding. Follow packing instructions strictly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Status Banner */}
               <div className={`rounded-xl p-4 border ${
                 result.savings > 0
@@ -185,18 +204,30 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
                 <Card className="bg-surface2 border-border">
                   <div className="flex items-start gap-3">
                     <TrendingUp className="h-5 w-5 text-teal mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-2">Cost Breakdown</p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-[13px] text-muted line-through">Rs.{result.baseline_cost.toFixed(2)}</span>
-                        <ArrowRight className="h-3.5 w-3.5 text-muted" />
-                        <span className="text-[20px] font-bold text-teal">Rs.{result.optimized_cost.toFixed(2)}</span>
+                    <div className="flex-1 w-full">
+                      <p className="text-[10px] text-muted-dark uppercase tracking-wider font-bold mb-3">Cost Analysis</p>
+                      <div className="space-y-2.5">
+                        <div className="flex justify-between items-center text-[12px]">
+                          <span className="text-muted">Baseline Cost</span>
+                          <span className="text-muted line-through">Rs.{result.baseline_cost.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[13px] font-semibold">
+                          <span className="text-foreground">Optimized Cost</span>
+                          <span className="text-foreground">Rs.{result.optimized_cost.toFixed(2)}</span>
+                        </div>
+                        <div className="h-px bg-border my-1"></div>
+                        {result.savings > 0 ? (
+                          <div className="flex justify-between items-center text-[14px] font-bold text-teal">
+                            <span>Total Savings</span>
+                            <span>Rs.{result.savings.toFixed(2)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center text-[14px] font-bold text-orange">
+                            <span>Best Fit Only</span>
+                            <span>Rs.0.00</span>
+                          </div>
+                        )}
                       </div>
-                      {result.savings > 0 && (
-                        <p className="text-[11px] text-teal mt-1">
-                          Saving Rs.{result.savings.toFixed(2)} ({((result.savings / result.baseline_cost) * 100).toFixed(1)}%)
-                        </p>
-                      )}
                     </div>
                   </div>
                 </Card>
@@ -211,22 +242,44 @@ export default function PackNowModal({ orderId, onClose }: PackNowModalProps) {
                   </div>
                   <div className="space-y-2">
                     {result.item_order.map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-ink2/50 border border-border/50">
-                        <div className="w-7 h-7 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-[11px] font-bold text-accent flex-shrink-0">
+                      <div key={i} className={`flex items-center gap-3 py-3 px-4 rounded-xl border border-border/50 ${
+                        item.is_fragile ? "bg-amber-500/5 border-amber-500/20" : "bg-ink2/50"
+                      }`}>
+                        <div className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center text-[12px] font-bold text-muted flex-shrink-0">
                           {i + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-[12px] text-foreground font-medium">{item.product_name}</span>
-                          <span className="text-[11px] text-muted ml-1">×{item.quantity}</span>
+                          <span className="text-[13px] text-foreground font-semibold block">{item.product_name}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[11px] text-muted bg-surface2 px-1.5 py-0.5 rounded">× {item.quantity} units</span>
+                            
+                            {item.is_fragile && (
+                              <span className="flex items-center gap-1 text-[10px] text-amber-500 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                <ShieldAlert className="h-3 w-3" />
+                                Add Padding
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={item.is_fragile ? "danger" : "success"}>
-                            {item.layer}
-                          </Badge>
-                          {item.is_fragile && (
-                            <span className="text-[9px] text-orange bg-orange/10 px-1.5 py-0.5 rounded-full border border-orange/20">
-                              ⚠ Handle with care
-                            </span>
+                        
+                        <div className="flex items-center">
+                          {item.layer === "bottom" && (
+                            <div className="flex items-center gap-1.5 text-blue text-[11px] font-semibold bg-blue/10 px-2.5 py-1.5 rounded-lg border border-blue/20">
+                              <ArrowDownCircle className="h-3.5 w-3.5" />
+                              Heavy (Bottom)
+                            </div>
+                          )}
+                          {item.layer === "middle" && (
+                            <div className="flex items-center gap-1.5 text-teal text-[11px] font-semibold bg-teal/10 px-2.5 py-1.5 rounded-lg border border-teal/20">
+                              <Circle className="h-3.5 w-3.5" />
+                              Standard (Middle)
+                            </div>
+                          )}
+                          {item.layer === "top" && (
+                            <div className="flex items-center gap-1.5 text-purple text-[11px] font-semibold bg-purple/10 px-2.5 py-1.5 rounded-lg border border-purple/20">
+                              <ArrowUpCircle className="h-3.5 w-3.5" />
+                              Light (Top)
+                            </div>
                           )}
                         </div>
                       </div>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useOrders } from "@/hooks/useOrders";
+import { getOrdersOptimizationSummary } from "@/services/orders.service";
+import type { OrderOptimizationSummary } from "@/types";
 import OrdersTable from "@/components/tables/OrdersTable";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
@@ -20,6 +22,17 @@ export default function OrdersPage() {
   const [showModal, setShowModal] = useState(false);
   const [showPackNow, setShowPackNow] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [summaries, setSummaries] = useState<Map<number, OrderOptimizationSummary>>(new Map());
+
+  useEffect(() => {
+    if (orders.length > 0) {
+      getOrdersOptimizationSummary().then(data => {
+        const map = new Map<number, OrderOptimizationSummary>();
+        data.forEach(s => map.set(s.order_id, s));
+        setSummaries(map);
+      }).catch(() => {});
+    }
+  }, [orders]);
 
   const handleOptimize = (id: number) => {
     router.push(`/optimization?order=${id}`);
@@ -152,7 +165,7 @@ export default function OrdersPage() {
           }
         />
       ) : (
-        <OrdersTable orders={filteredOrders} onOptimize={handleOptimize} onPackNow={handlePackNow} />
+        <OrdersTable orders={filteredOrders} summaries={summaries} onOptimize={handleOptimize} onPackNow={handlePackNow} />
       )}
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Create Order">
