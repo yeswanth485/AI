@@ -153,8 +153,10 @@ def assign_spatial_positions(
 
 
 def items_fit_in_box(
-    db: Session, items: List[OrderItem], box: BoxInventory
+    db: Session, items: List[OrderItem], box: BoxInventory, product_map: dict = None
 ) -> PackingResult:
+    if product_map is None:
+        product_map = _build_product_map(db, items)
     product_map = _build_product_map(db, items)
 
     total_weight = 0.0

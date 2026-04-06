@@ -40,41 +40,59 @@ def calculate_shipping_cost(
     return rate_per_kg * chargeable_weight_kg
 
 
-def calculate_baseline_cost(db: Session, order: Order) -> float:
+def calculate_baseline_cost(db: Session, order: Order, product_map: dict = None) -> float:
     order_items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
     if not order_items:
         raise ValueError("No order items to calculate baseline")
 
-    total_item_volume = 0.0
+    # Calculate total weight of all items
     total_weight = 0.0
-
     for item in order_items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = product_map.get(item.product_id) if product_map else db.query(Product).filter(Product.id == item.product_id).first()
         if product is None:
             raise ValueError(f"Product {item.product_id} not found")
-        total_item_volume += (
-            float(product.length_cm)
-            * float(product.width_cm)
-            * float(product.height_cm)
-        ) * item.quantity
         total_weight += float(product.weight_kg) * item.quantity
 
-    inefficiency_factor = 1.5
-    simulated_volume = total_item_volume * inefficiency_factor
+    # Find boxes that can hold the total weight (naive packer approach)
+    available_boxes = (
+        db.query(BoxInventory)
+        .filter(BoxInventory.quantity_available > 0)
+        .filter(BoxInventory.max_weight_kg >= total_weight)
+        .all()
+    )
+    
+    if not available_boxes:
+        # Fallback to largest box if none can hold by weight
+        available_boxes = (
+            db.query(BoxInventory)
+            .filter(BoxInventory.quantity_available > 0)
+            .all()
+        )
+        if not available_boxes:
+            raise ValueError("No boxes available in inventory")
 
-    simulated_dim_weight = simulated_volume / 5000.0
-    chargeable_weight = max(total_weight, simulated_dim_weight)
+    # Sort boxes by volume (smallest to largest) and pick a reasonable middle option
+    # This simulates a naive packer who doesn't do volume optimization
+    boxes_by_volume = sorted(
+        available_boxes,
+        key=lambda b: b.length_cm * b.width_cm * b.height_cm
+    )
+    
+    # Pick a box in the middle third - not the smallest (might not fit well) 
+    # and not the largest (avoids lakhs-range costs)
+    mid_index = len(boxes_by_volume) // 2
+    baseline_box = boxes_by_volume[mid_index] if boxes_by_volume else boxes_by_volume[0]
 
-    return calculate_shipping_cost(db, str(order.shipping_zone), chargeable_weight)
+    return calculate_optimized_cost(db, order, baseline_box, product_map)
 
 
-def calculate_optimized_cost(db: Session, order: Order, box: BoxInventory) -> float:
+def calculate_optimized_cost(db: Session, order: Order, box: BoxInventory, product_map: dict = None) -> float:
     order_items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
     total_weight = 0.0
     total_volume = 0.0
 
     for item in order_items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = product_map.get(item.product_id)
         if product is None:
             raise ValueError(f"Product {item.product_id} not found")
         total_weight += float(product.weight_kg) * item.quantity

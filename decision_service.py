@@ -47,9 +47,9 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
     candidates = []
 
     for box in available_boxes:
-        packing_result = items_fit_in_box(db, order_items, box)
+        packing_result = items_fit_in_box(db, order_items, box, product_map)
         if packing_result.fits:
-            optimized_cost = calculate_optimized_cost(db, order, box)
+            optimized_cost = calculate_optimized_cost(db, order, box, product_map)
             candidates.append(
                 {
                     "box": box,
@@ -61,7 +61,7 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
                 }
             )
 
-    baseline_cost = calculate_baseline_cost(db, order)
+    baseline_cost = calculate_baseline_cost(db, order, product_map)
 
     filtered_candidates = [c for c in candidates if c["optimized_cost"] < baseline_cost]
 
@@ -89,8 +89,8 @@ def optimize_packaging(db: Session, order_id: int) -> dict:
             fitting_boxes,
             key=lambda b: b.length_cm * b.width_cm * b.height_cm,
         )
-        packing_result = items_fit_in_box(db, order_items, largest_box)
-        optimized_cost = calculate_optimized_cost(db, order, largest_box)
+        packing_result = items_fit_in_box(db, order_items, largest_box, product_map)
+        optimized_cost = calculate_optimized_cost(db, order, largest_box, product_map)
         efficiency = packing_result.efficiency_score
 
         winner = {
